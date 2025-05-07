@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  middleware:
+    build: ./middleware
+    networks:
+      - hz-net
+    ports:
+      - "5701:5701"
+    environment:
+      - HZ_NETWORK_JOIN_MULTICAST_ENABLED=false
+      - HZ_NETWORK_JOIN_TCPIP_ENABLED=true
+      - HZ_NETWORK_JOIN_TCPIP_MEMBERS=middleware
+
+  processing-unit:
+    build: ./processing-unit
+    networks:
+      - hz-net
+    depends_on:
+      - middleware
+    environment:
+      - HZ_HOST=middleware
+      - HZ_PORT=5701
+    deploy:
+      replicas: 3
+networks:
+  hz-net:
+    driver: bridge
