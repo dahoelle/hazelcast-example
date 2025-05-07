@@ -1,0 +1,91 @@
+version: "3.8"
+
+networks:
+  hazelcast_network:
+    driver: bridge
+    name: hazelcast_network
+
+services:
+  management-center:
+    image: hazelcast/management-center:latest
+    ports:
+      - 8080:8080
+    environment:
+     - MC_DEFAULT_CLUSTER=dev
+     - MC_DEFAULT_CLUSTER_MEMBERS=192.168.1.129:4001
+    networks: 
+      - hazelcast_network
+
+  messaging-grid:
+    image: node:lts-alpine
+    volumes:
+      - ./messaging-grid:/usr/src/app
+    command: node /usr/src/app/server.js
+    ports:
+      - 2999:4000
+    networks: 
+      - hazelcast_network
+
+  deployment-manager:
+    image: node:lts-alpine
+    volumes:
+      - ./deployment-manager:/usr/src/app
+      - ./hazelcast.yaml:/hazelcast.yaml # Hazelcast config is copied into new docker containers
+      - /var/run/docker.sock:/var/run/docker.sock # Allows dockerode to access the Docker deamon
+    command: node /usr/src/app/server.js
+    ports:
+      - 3000:4000
+    networks: 
+      - hazelcast_network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - ./data-pump/lib:/var/lib/rabbitmq/
+      - ./data-pump/log:/var/log/rabbitmq
+    networks: 
+      - hazelcast_network
+
+  mariadb:
+    image: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+      MYSQL_DATABASE: space-based
+    ports:
+      - 3306:3306
+    volumes:
+      - ./database:/var/lib/mysql
+    networks: 
+      - hazelcast_network
+ 
+  # hazelcast-cluster-1:
+  #   image: hazelcast/hazelcast:latest
+  #   ports:
+  #     - 4001:5701
+  #   volumes:
+  #     - ./hazelcast.yaml:/opt/hazelcast/config/hazelcast.yaml
+  #   networks: 
+  #     - hazelcast_network
+
+  # processing-unit-1:
+  #   image: node:lts-alpine
+  #   volumes:
+  #     - ./processing-unit:/usr/src/app
+  #   command: node /usr/src/app/server.js
+  #   environment:
+  #     - HZ_CLUSTER_IP=hazelcast-cluster-1
+  #     - HZ_CLUSTER_PORT=4001
+  #   ports:
+  #     - 3001:4000
+  #   networks: 
+  #     - hazelcast_network
+ 

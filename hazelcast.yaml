@@ -1,0 +1,10 @@
+hazelcast:
+  cluster-name: dev
+  network:
+    join:
+      multicast:
+        enabled: false
+      tcp-ip:
+        enabled: true
+        members:
+          - hazelcast-cluster-1 # Seed node (This config instructs other nodes to connect to this seed node)
