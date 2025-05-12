@@ -95,10 +95,10 @@ const plugin = async function (fastify, opts) {
 		const processingUnit = {
 			name: procesingName,
 			Image: 'node:lts-alpine',
-			Env: [`HZ_CLUSTER_IP=192.168.1.129`, `HZ_CLUSTER_PORT=${hazelcastPort}`, `PU_NAME=${procesingName}`, `PU_PORT=4000`],
+			Env: [`HZ_CLUSTER_IP=217.154.206.223`, `HZ_CLUSTER_PORT=${hazelcastPort}`, `PU_NAME=${procesingName}`, `PU_PORT=4000`],
 			Cmd: ['node', '/usr/src/app/server.js'],
 			HostConfig: {
-				Binds: [`/home/rwu/space-based/processing-unit:/usr/src/app`],
+				Binds: [`/root/space-based/processing-unit:/usr/src/app`],
 				NetworkMode: 'hazelcast_network',
 				PortBindings: {
 					'4000/tcp': [
