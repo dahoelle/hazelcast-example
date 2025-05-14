@@ -126,6 +126,9 @@ const plugin = async function (fastify, opts) {
 		await createContainer({ options: processingUnit });
 	};
 
+	// Automatically create a PU at boot
+	createProcessingUnit({ index: 1 });
+
 	fastify.decorate('deploymentContainer', {
 		createProcessingUnit,
 	});
