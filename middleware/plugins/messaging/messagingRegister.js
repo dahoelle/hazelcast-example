@@ -15,7 +15,7 @@ const plugin = async function (fastify, opts) {
 	 * @param {string} opt.name
 	 * @param {string} opt.port
 	 */
-	const registerProcesingUnit = function ({ name, port }) {
+	const registerProcessingUnit = function ({ name, port }) {
 		const url = `${name}:${port}`;
 		processingUnits.add(url);
 	};
@@ -25,7 +25,7 @@ const plugin = async function (fastify, opts) {
 	 * @param {string} opt.name
 	 * @param {string} opt.port
 	 */
-	const removeProcesingUnit = function ({ name, port }) {
+	const removeProcessingUnit = function ({ name, port }) {
 		const url = `${name}:${port}`;
 		processingUnits.delete(url);
 	};
@@ -44,25 +44,25 @@ const plugin = async function (fastify, opts) {
 		return unit;
 	};
 
-	const getAllProcessignUnits = function () {
+	const getAllProcessingUnits = function () {
 		return Array.from(processingUnits);
 	};
 
-	fastify.decorate('example', {
-		registerProcesingUnit,
-		removeProcesingUnit,
+	fastify.decorate('messagingRegister', {
+		registerProcessingUnit,
+		removeProcessingUnit,
 		getNextProcessingUnit,
-		getAllProcessignUnits,
+		getAllProcessingUnits,
 	});
 
-	module.exports.registerProcesingUnit = registerProcesingUnit;
-	module.exports.removeProcesingUnit = removeProcesingUnit;
+	module.exports.registerProcessingUnit = registerProcessingUnit;
+	module.exports.removeProcessingUnit = removeProcessingUnit;
 	module.exports.getNextProcessingUnit = getNextProcessingUnit;
-	module.exports.getAllProcessignUnits = getAllProcessignUnits;
+	module.exports.getAllProcessingUnits = getAllProcessingUnits;
 };
 
 module.exports = fp(plugin, {
 	fastify: '>=3.0.0',
-	name: 'fastify-example',
+	name: 'fastify-messaging-register',
 });
 

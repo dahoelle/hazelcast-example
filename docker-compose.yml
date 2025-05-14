@@ -16,25 +16,21 @@ services:
     networks:
       - hazelcast_network
 
-  messaging-grid:
+  middleware:
     image: node:lts-alpine
     volumes:
-      - ./messaging-grid:/usr/src/app
-    command: node /usr/src/app/server.js
-    ports:
-      - 2999:4000
-    networks:
-      - hazelcast_network
-
-  deployment-manager:
-    image: node:lts-alpine
-    volumes:
-      - ./deployment-manager:/usr/src/app
+      - ./middleware:/usr/src/app
       - ./hazelcast.yaml:/hazelcast.yaml # Hazelcast config is copied into new docker containers
-      - /var/run/docker.sock:/var/run/docker.sock # Allows dockerode to access the Docker deamon
+      - /var/run/docker.sock:/var/run/docker.sock # Allows dockerode to access the Docker daemon
     command: node /usr/src/app/server.js
     ports:
       - 3000:4000
+    environment:
+      - HZ_PORT_START=4100 # Defines the port range of the cluster. Cluster #n has port 4100 + n
+      - PU_PORT_START=3100 # Defines the port range of the PU. PU #n has port           3100 + n
+      - PUBLIC_IP=217.154.206.223
+      - MIDDLEWARE_NAME=middleware # Container name to pass to the instantiated PUs
+      - MIDDLEWARE_PORT=4000 # Container port to pass to the instantiated PUs (internal docker port, not the exposed port)
     networks:
       - hazelcast_network
 

@@ -8,9 +8,9 @@
  * @property {import("./../../config/development.json")} config
  * @property {import("../plugins/dev/typedefs/generateAllTypedefs.js")} generateAllTypedefs
  * @property {import("../plugins/dev/typedefs/getPluginTypedefs.js")} getPluginTypedefs
- * @property {import("../plugins/example/example.js")} example
- * @property {import("../plugins/example/hazelcast")} hazelcast
- * @property {import("../plugins/example/person")} person
- * @property {import("../plugins/example/mqtt")} mqtt
+ * @property {import("../plugins/pu/example.js")} example
+ * @property {import("../plugins/pu/hazelcast")} hazelcast
+ * @property {import("../plugins/pu/person")} person
+ * @property {import("../plugins/pu/mqtt")} mqtt
  */
 

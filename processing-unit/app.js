@@ -9,11 +9,11 @@ const path = require('path');
 module.exports = async function (fastify, opts) {
 	// Plugins
 	fastify.register(require('./plugins/dev'));
-	fastify.register(require('./plugins/example'));
+	fastify.register(require('./plugins/pu'));
 
 	// Routes
 	fastify.register(require('./routes/index'));
 	fastify.register(require('./routes/dev'));
-	fastify.register(require('./routes/example'));
+	fastify.register(require('./routes/pu'));
 };
 

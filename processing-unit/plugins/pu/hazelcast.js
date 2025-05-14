@@ -37,7 +37,7 @@ const plugin = async function (fastify, opts) {
 		map = await client.getMap('table_states');
 
 		// Register this processing unit in the messaging grid
-		const url = `http://messaging-grid:4000/register`;
+		const url = `http://${process.env.MIDDLEWARE_NAME}:${process.env.MIDDLEWARE_PORT}/register`;
 		await axios.post(url, { name: process.env.PU_NAME, port: process.env.PU_PORT });
 
 		// Initialize the tables

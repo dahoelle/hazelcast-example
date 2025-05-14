@@ -1,7 +1,6 @@
 'use strict';
 
 /**
- *
  * @param {Fastify} fastify
  * @param {*} opts
  */

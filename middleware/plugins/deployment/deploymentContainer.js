@@ -5,7 +5,6 @@ const Docker = require('dockerode');
 const docker = new Docker(); // Assumes local Docker socket
 
 /**
- *
  * @param {Fastify} fastify
  * @param {*} opts
  */
@@ -65,7 +64,7 @@ const plugin = async function (fastify, opts) {
 
 		const hazelcastConfig = '/opt/hazelcast/config/hazelcast.yaml';
 		const hazelcastName = `hazelcast-cluster-${index}`;
-		const hazelcastPort = 4000 + index;
+		const hazelcastPort = parseInt(process.env.HZ_PORT_START) + index;
 
 		/** @type {Docker.ContainerCreateOptions} */
 		const hazelcast = {
@@ -88,14 +87,23 @@ const plugin = async function (fastify, opts) {
 			},
 		};
 
-		const processingPort = 3000 + index;
-		const procesingName = `processing-unit-${index}`;
+		const processingPort = parseInt(process.env.PU_PORT_START) + index;
+		const processingName = `processing-unit-${index}`;
 
 		/** @type {Docker.ContainerCreateOptions} */
 		const processingUnit = {
-			name: procesingName,
+			name: processingName,
 			Image: 'node:lts-alpine',
-			Env: [`HZ_CLUSTER_IP=217.154.206.223`, `HZ_CLUSTER_PORT=${hazelcastPort}`, `PU_NAME=${procesingName}`, `PU_PORT=4000`],
+			Env: [
+				`HZ_CLUSTER_IP=${process.env.PUBLIC_IP}`,
+				`HZ_CLUSTER_PORT=${hazelcastPort}`,
+				`PU_NAME=${processingName}`,
+				`PU_PORT=4000`,
+
+				// Pass middleware config to the PUs
+				`MIDDLEWARE_NAME=${process.env.MIDDLEWARE_NAME}`,
+				`MIDDLEWARE_PORT=${process.env.MIDDLEWARE_PORT}`,
+			],
 			Cmd: ['node', '/usr/src/app/server.js'],
 			HostConfig: {
 				Binds: [`/root/space-based/processing-unit:/usr/src/app`],
@@ -118,7 +126,7 @@ const plugin = async function (fastify, opts) {
 		await createContainer({ options: processingUnit });
 	};
 
-	fastify.decorate('example', {
+	fastify.decorate('deploymentContainer', {
 		createProcessingUnit,
 	});
 
@@ -127,6 +135,5 @@ const plugin = async function (fastify, opts) {
 
 module.exports = fp(plugin, {
 	fastify: '>=3.0.0',
-	name: 'fastify-example',
+	name: 'fastify-deployment-container',
 });
-
