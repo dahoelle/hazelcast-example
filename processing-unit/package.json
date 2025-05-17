@@ -22,6 +22,7 @@
     "fastify-cli": "^7.4.0",
     "fastify-plugin": "^5.0.1",
     "hazelcast-client": "^5.3.0",
+    "pino-pretty": "^13.0.0",
     "uuid": "^11.1.0"
   }
 }

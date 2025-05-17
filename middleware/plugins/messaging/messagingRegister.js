@@ -7,7 +7,24 @@ const fp = require('fastify-plugin');
  * @param {*} opts
  */
 const plugin = async function (fastify, opts) {
-	const processingUnits = new Set();
+	class ProcessingUnitData {
+		/**
+		 * @param {object} opt
+		 * @param {String} opt.name
+		 * @param {String} opt.port
+		 */
+		constructor({ name, port }) {
+			this.name = name;
+			this.port = port;
+		}
+
+		getUrl() {
+			return `${this.name}:${this.port}`;
+		}
+	}
+
+	/** @type {ProcessingUnitData[]} */
+	const processingUnits = [];
 	let currentIndex = 0;
 
 	/**
@@ -16,49 +33,60 @@ const plugin = async function (fastify, opts) {
 	 * @param {string} opt.port
 	 */
 	const registerProcessingUnit = function ({ name, port }) {
-		const url = `${name}:${port}`;
-		processingUnits.add(url);
+		processingUnits.push(new ProcessingUnitData({ name, port }));
+
+		// Ensures that the monitor does include all PUs even if they don't have any requests
+		fastify.deploymentMonitor.setPerformanceOfPU({ processingUnit: name, requestsPerSecond: 0, uptime: 0 });
 	};
 
 	/**
 	 * @param {object} opt
 	 * @param {string} opt.name
-	 * @param {string} opt.port
 	 */
-	const removeProcessingUnit = function ({ name, port }) {
-		const url = `${name}:${port}`;
-		processingUnits.delete(url);
+	const removeProcessingUnit = async function ({ name }) {
+		// Immediately remove the PU from the messaging grid
+		const index = processingUnits.findIndex((data) => data.name == name);
+		processingUnits.splice(index, 1);
+
+		// TODO: Wait short amount of time to resolve pending requests
+
+		// Shutdown the Docker containers
+		await fastify.deploymentContainer.removeProcessingUnit({ processingUnit: name });
 	};
 
-	const getNextProcessingUnit = function () {
-		const units = Array.from(processingUnits);
-
+	const getNextProcessingUnitUrl = function () {
 		// Ensure the index is not out of bounds
-		currentIndex = currentIndex % units.length;
+		currentIndex = currentIndex % processingUnits.length;
 
-		const unit = units[currentIndex];
+		const unit = processingUnits[currentIndex];
 
 		// Determine the next unit index
 		currentIndex++;
-		currentIndex = currentIndex % units.length;
-		return unit;
+		currentIndex = currentIndex % processingUnits.length;
+		return unit.getUrl();
 	};
 
-	const getAllProcessingUnits = function () {
-		return Array.from(processingUnits);
+	const getLastProcessingUnit = function () {
+		return processingUnits[processingUnits.length - 1];
+	};
+
+	const getAllProcessingUnitUrls = function () {
+		return processingUnits.map((data) => data.getUrl());
 	};
 
 	fastify.decorate('messagingRegister', {
 		registerProcessingUnit,
 		removeProcessingUnit,
-		getNextProcessingUnit,
-		getAllProcessingUnits,
+		getNextProcessingUnitUrl,
+		getLastProcessingUnit,
+		getAllProcessingUnitUrls,
 	});
 
 	module.exports.registerProcessingUnit = registerProcessingUnit;
 	module.exports.removeProcessingUnit = removeProcessingUnit;
-	module.exports.getNextProcessingUnit = getNextProcessingUnit;
-	module.exports.getAllProcessingUnits = getAllProcessingUnits;
+	module.exports.getNextProcessingUnitUrl = getNextProcessingUnitUrl;
+	module.exports.getLastProcessingUnit = getLastProcessingUnit;
+	module.exports.getAllProcessingUnitUrls = getAllProcessingUnitUrls;
 };
 
 module.exports = fp(plugin, {

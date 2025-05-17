@@ -6,7 +6,7 @@
  */
 module.exports = async function (fastify, opts) {
 	fastify.get('/person', async function (request, reply) {
-		const processingUnit = fastify.messagingRegister.getNextProcessingUnit();
+		const processingUnit = fastify.messagingRegister.getNextProcessingUnitUrl();
 		const data = await fastify.messagingRequest.sendRequest({
 			processingUnit,
 			method: 'GET',
@@ -21,7 +21,7 @@ module.exports = async function (fastify, opts) {
 	});
 
 	fastify.get('/person/:xidPerson', async function (request, reply) {
-		const processingUnit = fastify.messagingRegister.getNextProcessingUnit();
+		const processingUnit = fastify.messagingRegister.getNextProcessingUnitUrl();
 		const data = await fastify.messagingRequest.sendRequest({
 			processingUnit,
 			method: 'GET',
@@ -36,7 +36,7 @@ module.exports = async function (fastify, opts) {
 	});
 
 	fastify.post('/person', async function (request, reply) {
-		const processingUnit = fastify.messagingRegister.getNextProcessingUnit();
+		const processingUnit = fastify.messagingRegister.getNextProcessingUnitUrl();
 		const data = await fastify.messagingRequest.sendRequest({
 			processingUnit,
 			method: 'POST',

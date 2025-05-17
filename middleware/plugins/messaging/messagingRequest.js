@@ -20,9 +20,6 @@ const plugin = async function (fastify, opts) {
 	const sendRequest = async function ({ processingUnit, endpoint, body = null, params = null, query = null, method }) {
 		const url = `http://${processingUnit}/${endpoint}`;
 
-		// Inform the monitor that a request has been forwarded
-		fastify.deploymentMonitor.increaseRequestCount({ processingUnit });
-
 		// TODO: Implement params & query
 
 		let result = null;

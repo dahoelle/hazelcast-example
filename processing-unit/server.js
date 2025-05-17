@@ -8,7 +8,14 @@ const Fastify = require('fastify');
 
 // Instantiate Fastify with some config
 const app = Fastify({
-	logger: true,
+	logger: {
+		transport: {
+			target: 'pino-pretty',
+			options: {
+				singleLine: true,
+			},
+		},
+	},
 	pluginTimeout: 10000,
 });
 

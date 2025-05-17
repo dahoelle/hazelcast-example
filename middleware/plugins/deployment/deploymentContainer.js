@@ -25,11 +25,9 @@ const plugin = async function (fastify, opts) {
 	const startContainer = async function ({ containerInfo }) {
 		const container = docker.getContainer(containerInfo.Id);
 		await container.start();
-		fastify.log.info(`[+] Successfully started container ${containerName}`);
 	};
 
 	/**
-	 *
 	 * @param {object} opt
 	 * @param {Docker.ContainerCreateOptions} opt.options
 	 * @returns
@@ -51,6 +49,53 @@ const plugin = async function (fastify, opts) {
 		} catch (err) {
 			fastify.log.info(`[-] Failed to start container: ${name}`);
 			fastify.log.info(err);
+		}
+	};
+
+	/**
+	 * @param {object} opt
+	 * @param {String} opt.name
+	 * @returns
+	 */
+	const stopContainer = async function ({ name }) {
+		const containerInfo = await getContainerInfoByName({ name });
+		if (!containerInfo) {
+			fastify.log.info(`[-] Container ${name} not found.`);
+			return;
+		}
+
+		const container = docker.getContainer(containerInfo.Id);
+		try {
+			await container.stop();
+			fastify.log.info(`[+] Successfully stopped container: ${name}`);
+		} catch (err) {
+			if (err.statusCode !== 304) {
+				// 304: container already stopped
+				fastify.log.error(`[-] Failed to stop container ${name}`);
+				fastify.log.error(err);
+			}
+		}
+	};
+
+	/**
+	 * @param {object} opt
+	 * @param {String} opt.name
+	 * @returns
+	 */
+	const removeContainer = async function ({ name }) {
+		const containerInfo = await getContainerInfoByName({ name });
+		if (!containerInfo) {
+			fastify.log.info(`[-] Container ${name} not found.`);
+			return;
+		}
+
+		const container = docker.getContainer(containerInfo.Id);
+		try {
+			await container.remove();
+			fastify.log.info(`[+] Successfully removed container: ${name}`);
+		} catch (err) {
+			fastify.log.error(`[-] Failed to remove container ${name}`);
+			fastify.log.error(err);
 		}
 	};
 
@@ -126,14 +171,41 @@ const plugin = async function (fastify, opts) {
 		await createContainer({ options: processingUnit });
 	};
 
-	// Automatically create a PU at boot
-	createProcessingUnit({ index: 1 });
+	const removeProcessingUnit = async function ({ processingUnit }) {
+		const index = getPUIndexFromName({ name: processingUnit });
+		const hazelcast = `hazelcast-cluster-${index}`;
+
+		await stopContainer({ name: processingUnit });
+		await stopContainer({ name: hazelcast });
+
+		await removeContainer({ name: processingUnit });
+		await removeContainer({ name: hazelcast });
+	};
+
+	/**
+	 * @param {Object} opt
+	 * @param {String} opt.name
+	 */
+	const getPUIndexFromName = function ({ name }) {
+		const index = 'processing-unit-'.length;
+		return parseInt(name.substring(index, name.length));
+	};
+
+	const getPUNameFromIndex = function ({ index }) {
+		return `processing-unit-${index}`;
+	};
 
 	fastify.decorate('deploymentContainer', {
 		createProcessingUnit,
+		removeProcessingUnit,
+		getPUIndexFromName,
+		getPUNameFromIndex,
 	});
 
 	module.exports.createProcessingUnit = createProcessingUnit;
+	module.exports.removeProcessingUnit = removeProcessingUnit;
+	module.exports.getPUIndexFromName = getPUIndexFromName;
+	module.exports.getPUNameFromIndex = getPUNameFromIndex;
 };
 
 module.exports = fp(plugin, {

@@ -6,7 +6,7 @@
  */
 module.exports = async function (fastify, opts) {
 	fastify.get('/list', async function (request, reply) {
-		const processingUnits = fastify.messagingRegister.getAllProcessingUnits();
+		const processingUnits = fastify.messagingRegister.getAllProcessingUnitUrls();
 
 		reply.send({
 			success: true,
