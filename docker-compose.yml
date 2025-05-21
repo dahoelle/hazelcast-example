@@ -6,7 +6,9 @@ networks:
     name: hazelcast_network
 
 services:
+  # Used to display & visualize the individual Hazelcast clusters
   management-center:
+    container_name: management-center
     image: hazelcast/management-center:latest
     ports:
       - 8080:8080
@@ -16,7 +18,9 @@ services:
     networks:
       - hazelcast_network
 
+  # The space-based virtualized middleware. Includes messaging-grid & deployment-manager
   middleware:
+    container_name: middleware
     image: node:lts-alpine
     volumes:
       - ./middleware:/usr/src/app
@@ -34,9 +38,10 @@ services:
     networks:
       - hazelcast_network
 
+  # The space-based data-pump
   rabbitmq:
-    image: rabbitmq:3-management
     container_name: rabbitmq
+    image: rabbitmq:3-management
     ports:
       - 5672:5672
       - 15672:15672
@@ -49,7 +54,9 @@ services:
     networks:
       - hazelcast_network
 
+  # The space-based database
   mariadb:
+    container_name: mariadb
     image: mariadb
     environment:
       MYSQL_ROOT_PASSWORD: admin
@@ -63,24 +70,38 @@ services:
     networks:
       - hazelcast_network
 
-  # hazelcast-cluster-1:
-  #   image: hazelcast/hazelcast:latest
-  #   ports:
-  #     - 4001:5701
-  #   volumes:
-  #     - ./hazelcast.yaml:/opt/hazelcast/config/hazelcast.yaml
-  #   networks:
-  #     - hazelcast_network
+  #
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    restart: always
+    volumes:
+      - ./grafana:/var/lib/grafana
+    ports:
+      - 80:3000
+    networks:
+      - hazelcast_network
+    user: "0"
 
-  # processing-unit-1:
-  #   image: node:lts-alpine
-  #   volumes:
-  #     - ./processing-unit:/usr/src/app
-  #   command: node /usr/src/app/server.js
-  #   environment:
-  #     - HZ_CLUSTER_IP=hazelcast-cluster-1
-  #     - HZ_CLUSTER_PORT=4001
-  #   ports:
-  #     - 3001:4000
-  #   networks:
-  #     - hazelcast_network
+  #
+  elasticsearch:
+    container_name: elasticsearch
+    image: elasticsearch:7.17.10
+    restart: always
+    volumes:
+      - ./elasticsearch:/var/lib/elasticsearch/data
+    environment:
+      - discovery.type=single-node
+      - http.port=9200
+      - http.cors.enabled=true
+      - http.cors.allow-origin=http://localhost:1358,http://127.0.0.1:1358
+      - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
+      - http.cors.allow-credentials=true
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - hazelcast_network
+    user: "0"

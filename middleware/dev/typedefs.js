@@ -14,5 +14,6 @@
  * @property {import("./../plugins/messaging/messagingRegister.js")} messagingRegister
  * @property {import("./../plugins/messaging/messagingRequest.js")} messagingRequest
  * @property {import("./../plugins/simulator/simulator")} simulator
+ * @property {import("./../plugins/elasticsearch/elasticsearch")} elasticsearch
  */
 

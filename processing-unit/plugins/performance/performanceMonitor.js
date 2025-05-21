@@ -30,6 +30,9 @@ const plugin = async function (fastify, opts) {
 		if (count > maxSavedRoutines) {
 			requestCount.pop();
 		}
+
+		// Save performance data in ElasticSearch
+		await fastify.elasticsearch.post({ index: 'pu_requests_per_second', data: { count: requestsPerSecond, name: process.env.PU_NAME } });
 	};
 
 	// Start the monitor routine

@@ -32,7 +32,8 @@ const plugin = async function (fastify, opts) {
 		await axios.get('http://middleware:4000/person');
 		const end = new Date().valueOf();
 
-		fastify.log.info(`[+] Simulator: Request took ${end - start} ms`);
+		const timeMs = end - start;
+		await fastify.elasticsearch.post({ index: 'pu_response_time', data: { time_ms: timeMs } });
 	};
 
 	fastify.decorate('simulator', {
