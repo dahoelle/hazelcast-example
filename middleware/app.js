@@ -11,11 +11,13 @@ module.exports = async function (fastify, opts) {
 	fastify.register(require('./plugins/dev'));
 	fastify.register(require('./plugins/messaging'));
 	fastify.register(require('./plugins/deployment'));
+	fastify.register(require('./plugins/simulator'));
 
 	// Routes
 	fastify.register(require('./routes/index'));
 	fastify.register(require('./routes/dev'));
 	fastify.register(require('./routes/messaging'));
 	fastify.register(require('./routes/deployment'));
+	fastify.register(require('./routes/simulator'));
 };
 

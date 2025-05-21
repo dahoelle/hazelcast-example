@@ -13,5 +13,6 @@
  * @property {import("./../plugins/dev/typedefs/getPluginTypedefs.js")} getPluginTypedefs
  * @property {import("./../plugins/messaging/messagingRegister.js")} messagingRegister
  * @property {import("./../plugins/messaging/messagingRequest.js")} messagingRequest
+ * @property {import("./../plugins/simulator/simulator")} simulator
  */
 
