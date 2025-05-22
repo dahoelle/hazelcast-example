@@ -32,6 +32,14 @@ const plugin = async function (fastify, opts) {
 		await hazelcast.setTableState({ table: table, state: 'Loading' });
 
 		// TODO: Die Mappings und Daten über Data-Reader holen
+		await fastify.mqtt.publish({
+			queue: 'ReadRequest',
+			message: {
+				table: 'Persons',
+				statement: 'SELECT * FROM Persons',
+			},
+		});
+
 		await hazelcast.execute({
 			statement: `
                 CREATE MAPPING Persons (
@@ -126,9 +134,9 @@ const plugin = async function (fastify, opts) {
 		});
 
 		await fastify.mqtt.publish({
-			queue: 'Persons',
+			queue: 'WriteRequest',
 			message: {
-				type: 'write',
+				table: 'Persons',
 				statement: statement,
 			},
 		});

@@ -123,8 +123,7 @@ const plugin = async function (fastify, opts) {
 		}
 
 		// Don't remove PU if it is the last one
-		const units = fastify.messagingRegister.getAllProcessingUnitUrls();
-		if (units.length == 1) {
+		if (processingUnits.length == 1) {
 			return;
 		}
 

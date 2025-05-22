@@ -38,6 +38,16 @@ services:
     networks:
       - hazelcast_network
 
+  #
+  data-rw:
+    container_name: data-rw
+    image: node:lts-alpine
+    volumes:
+      - ./data-rw:/usr/src/app
+    command: node /usr/src/app/server.js
+    networks:
+      - hazelcast_network
+
   # The space-based data-pump
   rabbitmq:
     container_name: rabbitmq
