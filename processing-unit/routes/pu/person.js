@@ -26,7 +26,7 @@ module.exports = async function (fastify, opts) {
 			sLastName: sLastName,
 		});
 
-		const result = await fastify.person.create(person);
+		const result = await fastify.person.create({ person });
 		reply.send({ success: true, data: result });
 		return reply;
 	});

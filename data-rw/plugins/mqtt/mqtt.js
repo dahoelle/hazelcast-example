@@ -30,41 +30,49 @@ const plugin = async function (fastify, opts) {
 
 		channel = await connection.createChannel();
 
+		await channel.assertQueue('MappingRequest');
 		await channel.assertQueue('ReadRequest');
 		await channel.assertQueue('WriteRequest');
 
-		channel.consume('ReadRequest', async (message) => {
-			if (message == null) {
-				fastify.log.info(`[-] Consumer has been cancelled by the server`);
-				return;
+		channel.consume('MappingRequest', async (message) => {
+			const success = validateMessage({ message, channel, title: 'MappingRequest' });
+			if (success) {
+				fastify.mappingRequest.onRequest({ message });
 			}
+		});
 
-			// Acknowledge the message
-			fastify.log.info(`[+] Received ReadRequest over MQTT`);
-			channel.ack(message);
-
-			// Read & execute the SQL statement of the message
-			const data = JSON.parse(message.content.toString());
-			const response = await fastify.mysql.execute({ statement: data.statement });
-
-			// Split the response into multiple smaller chunks and send them back using the request id
-			// TODO: Jeden Datensatz als eigene MQTT Nachricht senden, da max Länge einer Nachricht 256 MB ist
+		channel.consume('ReadRequest', async (message) => {
+			const success = validateMessage({ message, channel, title: 'ReadRequest' });
+			if (success) {
+				fastify.readRequest.onRequest({ message });
+			}
 		});
 
 		channel.consume('WriteRequest', async (message) => {
-			if (message == null) {
-				fastify.log.info(`[-] Consumer has been cancelled by the server`);
-				return;
+			const success = validateMessage({ message, channel, title: 'WriteRequest' });
+			if (success) {
+				fastify.writeRequest.onRequest({ message });
 			}
-
-			// Acknowledge the message
-			fastify.log.info(`[+] Received WriteRequest over MQTT`);
-			channel.ack(message);
-
-			// Read & execute the SQL statement of the message
-			const data = JSON.parse(message.content.toString());
-			await fastify.mysql.execute({ statement: data.statement });
 		});
+	};
+
+	/**
+	 * @param {object} opt
+	 * @param {object} opt.message
+	 * @param {object} opt.channel
+	 * @param {object} opt.title
+	 * @returns
+	 */
+	const validateMessage = function ({ message, channel, title }) {
+		if (message == null) {
+			fastify.log.info(`[-] Consumer has been cancelled by the server`);
+			return false;
+		}
+
+		// Acknowledge the message
+		fastify.log.info(`[+] Received ${title} over MQTT`);
+		channel.ack(message);
+		return true;
 	};
 
 	/**

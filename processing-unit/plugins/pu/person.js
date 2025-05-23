@@ -20,6 +20,7 @@ const plugin = async function (fastify, opts) {
 			this.xidPerson = xidPerson;
 			this.sFirstName = sFirstName;
 			this.sLastName = sLastName;
+			this.__key = xidPerson;
 		}
 	}
 
@@ -31,7 +32,25 @@ const plugin = async function (fastify, opts) {
 		if (state != null) return;
 		await hazelcast.setTableState({ table: table, state: 'Loading' });
 
-		// TODO: Die Mappings und Daten über Data-Reader holen
+		await fastify.mqtt.publish({
+			queue: 'MappingRequest',
+			message: {
+				table: 'Persons',
+			},
+		});
+	};
+
+	/**
+	 * @param {Object} opt
+	 * @param {String} opt.data
+	 */
+	const onMappingResponse = async function ({ data }) {
+		fastify.log.info(`[+] Reading the Persons mapping from the Data-Reader`);
+
+		await hazelcast.execute({
+			statement: data,
+		});
+
 		await fastify.mqtt.publish({
 			queue: 'ReadRequest',
 			message: {
@@ -39,41 +58,35 @@ const plugin = async function (fastify, opts) {
 				statement: 'SELECT * FROM Persons',
 			},
 		});
-
-		await hazelcast.execute({
-			statement: `
-                CREATE MAPPING Persons (
-                    __key VARCHAR,
-                    xidPerson VARCHAR,
-                    sFirstName VARCHAR,
-                    sLastName VARCHAR
-                )
-                TYPE IMap
-                OPTIONS (
-                    'keyFormat' = 'varchar',
-                    'valueFormat' = 'json-flat'
-                )`,
-		});
-
-		await create(
-			new Person({
-				sFirstName: 'John',
-				sLastName: 'Doe',
-			})
-		);
 	};
 
 	/**
-	 * @param {Person} person
+	 * @param {Object} opt
+	 * @param {Object[]} opt.data
 	 */
-	const create = async function (person) {
+	const onReadResponse = async function ({ data }) {
+		fastify.log.info(`[+] Reading ${data.length} Persons from the Data-Reader`);
+
+		for (const item of data) {
+			const person = new Person(item);
+			await create({ person, toSql: false });
+		}
+	};
+
+	/**
+	 * @param {object} opt
+	 * @param {Person} opt.person
+	 * @param {boolean} opt.toHazelCast - False to prevent writing to Hazelcast
+	 * @param {boolean} opt.toSql - False to prevent writing to the SQL database
+	 */
+	const create = async function ({ person, toHazelCast = true, toSql = true }) {
 		if (person.xidPerson == null) person.xidPerson = uuid();
 
 		const statement = ` 
             INSERT INTO Persons (__key, xidPerson, sFirstName, sLastName)
             VALUES ('${person.xidPerson}', '${person.xidPerson}', '${person.sFirstName}', '${person.sLastName}')`;
 
-		await write({ statement: statement });
+		await write({ statement: statement, toHazelCast, toSql });
 	};
 
 	/**
@@ -127,23 +140,31 @@ const plugin = async function (fastify, opts) {
 	/**
 	 * @param {object} opt
 	 * @param {String} opt.statement
+	 * @param {boolean} opt.toHazelCast - False to prevent writing to Hazelcast
+	 * @param {boolean} opt.toSql - False to prevent writing to the SQL database
 	 */
-	const write = async function ({ statement }) {
-		await fastify.hazelcast.execute({
-			statement: statement,
-		});
-
-		await fastify.mqtt.publish({
-			queue: 'WriteRequest',
-			message: {
-				table: 'Persons',
+	const write = async function ({ statement, toHazelCast = true, toSql = true }) {
+		if (toHazelCast) {
+			await fastify.hazelcast.execute({
 				statement: statement,
-			},
-		});
+			});
+		}
+
+		if (toSql) {
+			await fastify.mqtt.publish({
+				queue: 'WriteRequest',
+				message: {
+					table: 'Persons',
+					statement: statement,
+				},
+			});
+		}
 	};
 
 	fastify.decorate('person', {
 		init,
+		onMappingResponse,
+		onReadResponse,
 		model: Person,
 		create,
 		getSingle,
@@ -152,6 +173,8 @@ const plugin = async function (fastify, opts) {
 	});
 
 	module.exports.init = init;
+	module.exports.onMappingResponse = onMappingResponse;
+	module.exports.onReadResponse = onReadResponse;
 	module.exports.model = Person;
 	module.exports.getSingle = getSingle;
 	module.exports.get = get;
