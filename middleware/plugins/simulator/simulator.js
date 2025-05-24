@@ -2,6 +2,7 @@
 
 const fp = require('fastify-plugin');
 const axios = require('axios').default;
+const { uniqueNamesGenerator, adjectives, animals } = require('unique-names-generator');
 
 /**
  * @param {Fastify} fastify
@@ -28,8 +29,18 @@ const plugin = async function (fastify, opts) {
 	};
 
 	const sendRequest = async function () {
+		const randomName = uniqueNamesGenerator({
+			dictionaries: [adjectives, animals],
+			length: 2,
+		});
+
+		const person = {
+			sFirstName: randomName.split('_')[0],
+			sLastName: randomName.split('_')[1],
+		};
+
 		const start = new Date().valueOf();
-		await axios.get('http://middleware:4000/person');
+		await axios.post('http://middleware:4000/person', person);
 		const end = new Date().valueOf();
 
 		const timeMs = end - start;
