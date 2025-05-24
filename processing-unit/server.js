@@ -23,10 +23,12 @@ const app = Fastify({
 app.register(require('./app.js'));
 
 // Start listening.
-app.listen({ port: 4000, host: '0.0.0.0' }, (err) => {
-	if (err) {
-		app.log.error(err);
-		process.exit(1);
-	}
+app.ready(() => {
+	app.listen({ port: 4000, host: '0.0.0.0' }, (err) => {
+		if (err) {
+			app.log.error(err);
+			process.exit(1);
+		}
+	});
 });
 
