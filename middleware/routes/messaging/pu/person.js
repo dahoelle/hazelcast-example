@@ -10,10 +10,8 @@ module.exports = async function (fastify, opts) {
 		const data = await fastify.messagingRequest.sendRequest({
 			processingUnit,
 			method: 'GET',
-			endpoint: 'person',
+			path: request.url,
 			body: request.body,
-			params: request.params,
-			query: request.query,
 		});
 
 		reply.send(data);
@@ -21,14 +19,13 @@ module.exports = async function (fastify, opts) {
 	});
 
 	fastify.get('/person/:xidPerson', async function (request, reply) {
+		fastify.log.info(request);
 		const processingUnit = fastify.messagingRegister.getNextProcessingUnitUrl();
 		const data = await fastify.messagingRequest.sendRequest({
 			processingUnit,
 			method: 'GET',
-			endpoint: 'person',
+			path: request.url,
 			body: request.body,
-			params: request.params,
-			query: request.query,
 		});
 
 		reply.send(data);
@@ -40,10 +37,8 @@ module.exports = async function (fastify, opts) {
 		const data = await fastify.messagingRequest.sendRequest({
 			processingUnit,
 			method: 'POST',
-			endpoint: 'person',
+			path: request.url,
 			body: request.body,
-			params: request.params,
-			query: request.query,
 		});
 
 		reply.send(data);

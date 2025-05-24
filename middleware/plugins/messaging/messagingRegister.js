@@ -55,6 +55,10 @@ const plugin = async function (fastify, opts) {
 	};
 
 	const getNextProcessingUnitUrl = function () {
+		if (processingUnits.length == 0) {
+			throw new Error('There is no PU registered!');
+		}
+
 		// Ensure the index is not out of bounds
 		currentIndex = currentIndex % processingUnits.length;
 

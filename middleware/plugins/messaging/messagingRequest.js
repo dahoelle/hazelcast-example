@@ -11,16 +11,12 @@ const plugin = async function (fastify, opts) {
 	/**
 	 * @param {Object} opt
 	 * @param {String} opt.processingUnit
-	 * @param {String} opt.endpoint
+	 * @param {String} opt.path
 	 * @param {Object} opt.body
-	 * @param {Object} opt.params
-	 * @param {Object} opt.query
 	 * @param {"GET" | "POST" | "PUT"} opt.method
 	 */
-	const sendRequest = async function ({ processingUnit, endpoint, body = null, params = null, query = null, method }) {
-		const url = `http://${processingUnit}/${endpoint}`;
-
-		// TODO: Implement params & query
+	const sendRequest = async function ({ processingUnit, path, body = null, method }) {
+		const url = `http://${processingUnit}${path}`;
 
 		let result = null;
 		switch (method) {
