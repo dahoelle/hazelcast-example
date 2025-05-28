@@ -20,6 +20,8 @@ const plugin = async function (fastify, opts) {
 	 * This enables the deployment manger to have shorter cooldowns, as the metrics are reset after adding a new cluster
 	 */
 	const resetPerformanceMetrics = function () {
+		return; //! Check whats better on or off
+
 		requestCount.splice(0, requestCount.length);
 		requestCount.push(0);
 	};
@@ -42,7 +44,13 @@ const plugin = async function (fastify, opts) {
 		}
 
 		// Save performance data in ElasticSearch
-		await fastify.elasticsearch.post({ index: 'pu_requests_per_second', data: { count: requestsPerSecond, name: process.env.PU_NAME } });
+		await fastify.elasticsearch.post({
+			index: 'pu_requests_per_second',
+			data: {
+				count: requestsPerSecond,
+				name: process.env.PU_NAME,
+			},
+		});
 	};
 
 	// Start the monitor routine
@@ -51,6 +59,19 @@ const plugin = async function (fastify, opts) {
 	//
 	fastify.addHook('onRequest', async (request, reply) => {
 		requestCount[0] = requestCount[0] + 1;
+	});
+
+	fastify.addHook('onResponse', async (request, reply) => {
+		const timeMs = reply.elapsedTime;
+		await fastify.elasticsearch.post({
+			index: 'pu_response_time',
+			data: {
+				time_ms: timeMs,
+				name: process.env.PU_NAME,
+				method: request.method,
+				url: request.url,
+			},
+		});
 	});
 
 	if (fastify.performanceMonitor == null) {

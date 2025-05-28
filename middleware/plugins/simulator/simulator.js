@@ -42,12 +42,7 @@ const plugin = async function (fastify, opts) {
 		// TODO: Komplexere Logi einfügen. Bsp: Eine POST Abfrage, dann eine GET Abfrage mit sort und filter, sodass caching nicht verwendet werden kann
 		// TODO: Erste Anfrage an PU ist immer 100te ms langsamer als rest
 
-		const start = new Date().valueOf();
 		await axios.post('http://middleware:4000/person', person);
-		const end = new Date().valueOf();
-
-		const timeMs = end - start;
-		await fastify.elasticsearch.post({ index: 'pu_response_time', data: { time_ms: timeMs } });
 	};
 
 	fastify.decorate('simulator', {
