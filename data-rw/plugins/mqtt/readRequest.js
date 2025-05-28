@@ -24,7 +24,7 @@ const plugin = async function (fastify, opts) {
 		}
 
 		// Split the response into multiple smaller chunks
-		const countPerChunk = 3;
+		const countPerChunk = 100;
 		for (let i = 0; i < response.data.length; i += countPerChunk) {
 			/** @type {import('../mysql/mysql').MySqlResponse[]} */
 			const chunks = response.data.slice(i, i + countPerChunk);

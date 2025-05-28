@@ -15,14 +15,17 @@ const mysql = require('mysql');
  * @param {*} opts
  */
 const plugin = async function (fastify, opts) {
-	const connection = mysql.createConnection({
-		host: '217.154.206.223',
-		user: 'admin',
-		password: 'admin',
-		database: 'space-based',
-	});
+	const getConnection = function () {
+		const connection = mysql.createConnection({
+			host: '217.154.206.223',
+			user: 'admin',
+			password: 'admin',
+			database: 'space-based',
+		});
 
-	connection.connect();
+		connection.connect();
+		return connection;
+	};
 
 	/**
 	 * @param {object} opt
@@ -31,7 +34,10 @@ const plugin = async function (fastify, opts) {
 	 */
 	const execute = async function ({ statement }) {
 		return new Promise((resolve) => {
+			const connection = getConnection();
 			connection.query(statement, (error, results, fields) => {
+				connection.end();
+
 				if (error != null) {
 					resolve({
 						success: false,
