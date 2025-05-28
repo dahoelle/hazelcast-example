@@ -9,7 +9,7 @@ const axios = require('axios').default;
  */
 const plugin = async function (fastify, opts) {
 	const routineDelayMs = 5000;
-	const maxSavedRoutines = 5;
+	const maxSavedRoutines = 2;
 	const maxSavedRoutinesTime = (routineDelayMs * maxSavedRoutines) / 1000;
 
 	// Defines the saved metrics

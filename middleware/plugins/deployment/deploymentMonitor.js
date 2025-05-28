@@ -24,7 +24,7 @@ const plugin = async function (fastify, opts) {
 
 	const routineDelayMs = 5000;
 	const minPUUptime = 20; // Seconds
-	const actionCooldown = 30000; // Milliseconds
+	const actionCooldown = 20000; // Milliseconds
 	const unresponsiveTimeout = 30000; // Milliseconds
 
 	/**
