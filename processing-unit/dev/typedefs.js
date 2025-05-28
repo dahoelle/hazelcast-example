@@ -13,5 +13,6 @@
  * @property {import("../plugins/pu/person")} person
  * @property {import("../plugins/pu/mqtt")} mqtt
  * @property {import("./../plugins/elasticsearch/elasticsearch")} elasticsearch
+ * @property {import("./../plugins/performance/performanceMonitor")} performanceMonitor
  */
 

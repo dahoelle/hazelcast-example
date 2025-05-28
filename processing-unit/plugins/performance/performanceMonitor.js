@@ -12,14 +12,24 @@ const plugin = async function (fastify, opts) {
 	const maxSavedRoutines = 5;
 	const maxSavedRoutinesTime = (routineDelayMs * maxSavedRoutines) / 1000;
 
-	//
+	// Defines the saved metrics
 	const requestCount = [0];
+
+	/**
+	 * Resets the collected performance metrics after a cluster has been added.
+	 * This enables the deployment manger to have shorter cooldowns, as the metrics are reset after adding a new cluster
+	 */
+	const resetPerformanceMetrics = function () {
+		requestCount.splice(0, requestCount.length);
+		requestCount.push(0);
+	};
 
 	const monitorRoutine = async function () {
 		// Determine the requests per second
 		const sum = requestCount.reduce((acc, current) => acc + current, 0);
-		const requestsPerSecond = sum / maxSavedRoutinesTime;
-		fastify.log.info(`[+] Requests per second = ${sum} / ${maxSavedRoutinesTime} = ${requestsPerSecond}`);
+		const divider = (maxSavedRoutinesTime / maxSavedRoutines) * requestCount.length;
+		const requestsPerSecond = sum / divider;
+		fastify.log.info(`[+] Requests per second = ${sum} / ${divider} = ${requestsPerSecond}`);
 
 		// SEnd the performance data to the messaging grid
 		const url = `http://${process.env.MIDDLEWARE_NAME}:${process.env.MIDDLEWARE_PORT}/performance`;
@@ -42,6 +52,14 @@ const plugin = async function (fastify, opts) {
 	fastify.addHook('onRequest', async (request, reply) => {
 		requestCount[0] = requestCount[0] + 1;
 	});
+
+	if (fastify.performanceMonitor == null) {
+		fastify.decorate('performanceMonitor', {
+			resetPerformanceMetrics,
+		});
+	}
+
+	module.exports.resetPerformanceMetrics = resetPerformanceMetrics;
 };
 
 module.exports = fp(plugin, {

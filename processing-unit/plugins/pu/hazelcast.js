@@ -23,6 +23,10 @@ const plugin = async function (fastify, opts) {
 	const port = process.env.HZ_CLUSTER_PORT;
 	fastify.log.info(`${ip}:${port}`);
 
+	const onClusterMembersChange = function () {
+		fastify.performanceMonitor.resetPerformanceMetrics();
+	};
+
 	/**
 	 * Initializes the Hazelcast client with one cluster
 	 */
@@ -35,6 +39,12 @@ const plugin = async function (fastify, opts) {
 
 		sql = await client.getSql();
 		map = await client.getMap('table_states');
+
+		// Add member listeners to the cluster
+		const cluster = client.getCluster();
+		cluster.addMembershipListener({
+			memberAdded: onClusterMembersChange,
+		});
 
 		// Register this processing unit in the messaging grid
 		const url = `http://${process.env.MIDDLEWARE_NAME}:${process.env.MIDDLEWARE_PORT}/register`;
