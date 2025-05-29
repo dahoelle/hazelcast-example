@@ -3,6 +3,7 @@
 const fp = require('fastify-plugin');
 const { v4: uuid } = require('uuid');
 const hazelcast = require('./hazelcast');
+const query = require('./query/query');
 
 /**
  * @param {Fastify} fastify
@@ -15,12 +16,13 @@ const plugin = async function (fastify, opts) {
 		 * @param {String} opt.xidPerson
 		 * @param {String} opt.sFirstName
 		 * @param {String} opt.sLastName
+		 * @param {String} opt.__key
 		 */
-		constructor({ xidPerson, sFirstName, sLastName }) {
+		constructor({ xidPerson, sFirstName, sLastName, __key }) {
 			this.xidPerson = xidPerson;
 			this.sFirstName = sFirstName;
 			this.sLastName = sLastName;
-			this.__key = xidPerson;
+			this.__key = __key;
 		}
 	}
 
@@ -68,59 +70,49 @@ const plugin = async function (fastify, opts) {
 		fastify.log.info(`[+] Reading ${data.length} Persons from the Data-Reader`);
 
 		for (const item of data) {
-			const person = new Person(item);
-			await create({ person, toSql: false });
+			const model = new Person(item);
+			await create({ model, toSql: false });
 		}
 	};
 
 	/**
 	 * @param {object} opt
-	 * @param {Person} opt.person
+	 * @param {Person} opt.model
 	 * @param {boolean} opt.toHazelCast - False to prevent writing to Hazelcast
 	 * @param {boolean} opt.toSql - False to prevent writing to the SQL database
 	 */
-	const create = async function ({ person, toHazelCast = true, toSql = true }) {
-		if (person.xidPerson == null) person.xidPerson = uuid();
+	const create = async function ({ model, toHazelCast = true, toSql = true }) {
+		if (model.xidPerson == null) model.xidPerson = uuid();
 
 		const statement = ` 
             INSERT INTO Persons (__key, xidPerson, sFirstName, sLastName)
-            VALUES ('${person.xidPerson}', '${person.xidPerson}', '${person.sFirstName}', '${person.sLastName}')`;
+            VALUES ('${model.xidPerson}', '${model.xidPerson}', '${model.sFirstName}', '${model.sLastName}')`;
 
 		await write({ statement: statement, toHazelCast, toSql });
 	};
 
 	/**
 	 * @param {object} opt
-	 * @param {String} opt.xidPerson
+	 * @param {object} opt.filters
+	 * @param {query.Filter} opt.filters.xidPerson
+	 * @param {query.Filter} opt.filters.sFirstName
+	 * @param {query.Filter} opt.filters.sLastName
+	 * @param {query.Filter} opt.filters.__key
+	 * @param {object} opt.sorters
+	 * @param {query.Sorter} opt.sorters.xidPerson
+	 * @param {query.Sorter} opt.sorters.sFirstName
+	 * @param {query.Sorter} opt.sorters.sLastName
+	 * @param {query.Sorter} opt.sorters.__key
 	 */
-	const getSingle = async function ({ xidPerson }) {
-		const rows = await fastify.hazelcast.execute({
-			statement: `
-                SELECT * 
-                FROM Persons person
-                WHERE person.xidPerson = '${xidPerson}'`,
-		});
+	const get = async function ({ filters, sorters }) {
+		const statement = `
+			SELECT * 
+			FROM Persons
+			${fastify.query.getWhereStatement({ filters })}
+			${fastify.query.getOrderStatement({ sorters })}`;
 
-		for await (const row of rows) {
-			return new Person({
-				xidPerson: row.xidPerson,
-				sFirstName: row.sFirstName,
-				sLastName: row.sLastName,
-			});
-		}
-
-		return null;
-	};
-
-	/**
-	 * @param {object} opt
-	 */
-	const get = async function () {
-		const rows = await fastify.hazelcast.execute({
-			statement: `
-                SELECT * 
-                FROM Persons`,
-		});
+		// fastify.log.info(statement);
+		const rows = await fastify.hazelcast.execute({ statement });
 
 		/** @type {Person[]} */
 		const persons = [];
@@ -130,6 +122,7 @@ const plugin = async function (fastify, opts) {
 					xidPerson: row.xidPerson,
 					sFirstName: row.sFirstName,
 					sLastName: row.sLastName,
+					__key: row.__key,
 				})
 			);
 		}
@@ -167,7 +160,6 @@ const plugin = async function (fastify, opts) {
 		onReadResponse,
 		model: Person,
 		create,
-		getSingle,
 		get,
 		write,
 	});
@@ -176,7 +168,6 @@ const plugin = async function (fastify, opts) {
 	module.exports.onMappingResponse = onMappingResponse;
 	module.exports.onReadResponse = onReadResponse;
 	module.exports.model = Person;
-	module.exports.getSingle = getSingle;
 	module.exports.get = get;
 	module.exports.write = write;
 	module.exports.create = create;
