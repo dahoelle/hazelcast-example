@@ -27,7 +27,7 @@ const plugin = async function (fastify, opts) {
 	}
 
 	const init = async function () {
-		const table = 'Persons';
+		const table = 'Person';
 		const state = await hazelcast.getTableState({ table: table });
 
 		// If the table is initialized, or another PU is loading it, return
@@ -37,7 +37,7 @@ const plugin = async function (fastify, opts) {
 		await fastify.mqtt.publish({
 			queue: 'MappingRequest',
 			message: {
-				table: 'Persons',
+				table: 'Person',
 			},
 		});
 	};
@@ -47,7 +47,7 @@ const plugin = async function (fastify, opts) {
 	 * @param {String} opt.data
 	 */
 	const onMappingResponse = async function ({ data }) {
-		fastify.log.info(`[+] Reading the Persons mapping from the Data-Reader`);
+		fastify.log.info(`[+] Reading the Person mapping from the Data-Reader`);
 
 		await hazelcast.execute({
 			statement: data,
@@ -56,8 +56,8 @@ const plugin = async function (fastify, opts) {
 		await fastify.mqtt.publish({
 			queue: 'ReadRequest',
 			message: {
-				table: 'Persons',
-				statement: 'SELECT * FROM Persons',
+				table: 'Person',
+				statement: 'SELECT * FROM Person',
 			},
 		});
 	};
@@ -67,7 +67,7 @@ const plugin = async function (fastify, opts) {
 	 * @param {Object[]} opt.data
 	 */
 	const onReadResponse = async function ({ data }) {
-		fastify.log.info(`[+] Reading ${data.length} Persons from the Data-Reader`);
+		fastify.log.info(`[+] Reading ${data.length} Person from the Data-Reader`);
 
 		for (const item of data) {
 			const model = new Person(item);
@@ -85,7 +85,7 @@ const plugin = async function (fastify, opts) {
 		if (model.xidPerson == null) model.xidPerson = uuid();
 
 		const statement = ` 
-            INSERT INTO Persons (__key, xidPerson, sFirstName, sLastName)
+            INSERT INTO Person (__key, xidPerson, sFirstName, sLastName)
             VALUES ('${model.xidPerson}', '${model.xidPerson}', '${model.sFirstName}', '${model.sLastName}')`;
 
 		await write({ statement: statement, toHazelCast, toSql });
@@ -107,7 +107,7 @@ const plugin = async function (fastify, opts) {
 	const get = async function ({ filters, sorters }) {
 		const statement = `
 			SELECT * 
-			FROM Persons
+			FROM Person
 			${fastify.query.getWhereStatement({ filters })}
 			${fastify.query.getOrderStatement({ sorters })}`;
 
@@ -147,7 +147,7 @@ const plugin = async function (fastify, opts) {
 			await fastify.mqtt.publish({
 				queue: 'WriteRequest',
 				message: {
-					table: 'Persons',
+					table: 'Person',
 					statement: statement,
 				},
 			});

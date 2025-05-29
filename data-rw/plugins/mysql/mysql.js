@@ -56,8 +56,6 @@ const plugin = async function (fastify, opts) {
 		});
 	};
 
-	execute({ statement: 'SELECT * FROM Persons' });
-
 	// Register the plugin
 	fastify.decorate('mysql', {
 		execute,

@@ -44,10 +44,12 @@ const plugin = async function (fastify, opts) {
 				return;
 			}
 
-			// TODO: Generischer
-			if (data.table == 'Persons') {
-				fastify.person.onReadResponse({ data: data.data });
-			}
+			/** @type {String} */
+			const table = data.table;
+
+			//! The fastify plugin names must equal the database table names, but start with a lowercase letter
+			const pluginName = table.substring(0, 1).toLowerCase() + table.substring(1);
+			fastify[pluginName].onReadResponse({ data: data.data });
 		});
 
 		channel.consume('MappingResponse', async (message) => {
@@ -62,10 +64,12 @@ const plugin = async function (fastify, opts) {
 				return;
 			}
 
-			// TODO: Generischer
-			if (data.table == 'Persons') {
-				fastify.person.onMappingResponse({ data: data.data });
-			}
+			/** @type {String} */
+			const table = data.table;
+
+			//! The fastify plugin names must equal the database table names, but start with a lowercase letter
+			const pluginName = table.substring(0, 1).toLowerCase() + table.substring(1);
+			fastify[pluginName].onMappingResponse({ data: data.data });
 		});
 	};
 

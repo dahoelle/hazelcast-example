@@ -51,6 +51,7 @@ const plugin = async function (fastify, opts) {
 		await axios.post(url, { name: process.env.PU_NAME, port: process.env.PU_PORT });
 
 		// Initialize the tables
+		// TODO: Generischer
 		fastify.person.init();
 	};
 

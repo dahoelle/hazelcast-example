@@ -31,7 +31,7 @@ const plugin = async function (fastify, opts) {
 		//
 		const mappingColumns = result.data.map((item) => `${item.COLUMN_NAME} ${item.DATA_TYPE}`);
 		const mappingStatement = `
-                CREATE MAPPING Persons (
+                CREATE MAPPING ${data.table} (
                     ${mappingColumns.join(',\n')}
                 )
                 TYPE IMap
