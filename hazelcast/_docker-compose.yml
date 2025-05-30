@@ -2,50 +2,27 @@ version: '3.8'
 
 services:
   middleware:
-    image: hazelcast/hazelcast:5.5.0
     build: ./middleware
+    networks:
+      - hz-net
     ports:
       - "5701:5701"
-    networks:
-      - hz-network
     environment:
       - HZ_NETWORK_JOIN_MULTICAST_ENABLED=false
       - HZ_NETWORK_JOIN_TCPIP_ENABLED=true
       - HZ_NETWORK_JOIN_TCPIP_MEMBERS=middleware
-    #environment:
-    #  - HZ_NETWORK_JOIN_MULTICAST_ENABLED=false
-    #  - HZ_NETWORK_JOIN_TCPIP_ENABLED=true
-    #  - HZ_NETWORK_JOIN_TCPIP_MEMBERS=middleware 
-    #  - HZ_MANAGEMENTCENTER_ENABLED=true
-    #  - HZ_MANAGEMENTCENTER_URL=http://processing-unit:8080/hazelcast-mancenter
-    #deploy:
-    #  replicas: 3
 
   processing-unit:
     build: ./processing-unit
     networks:
-      - hz-network
+      - hz-net
     depends_on:
       - middleware
     environment:
       - HZ_HOST=middleware
       - HZ_PORT=5701
-  #processing-unit:
-  #  image: hazelcast/management-center:5.3.4
-  #  build: ./processing-unit
-  #  depends_on:
-  #    - middleware
-  #  environment:
-  #    - HZ_HOST=middleware
-  #    - HZ_PORT=5701
-  #  networks:
-  #    - hz-network
-    #environment:
-    #  - MC_LICENSE_KEY=YOUR_LICENSE_KEY
-    #  - MC_INIT_CMD=./mc-conf.sh cluster add --member-addresses middleware
-#    deploy:
-#      replicas: 3  # Scale processing units
-
+    deploy:
+      replicas: 3
 networks:
-  hz-network:
+  hz-net:
     driver: bridge

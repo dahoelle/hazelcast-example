@@ -1,28 +1,42 @@
 version: '3.8'
-
-services:
-  middleware:
-    build: ./middleware
-    networks:
-      - hz-net
-    ports:
-      - "5701:5701"
-    environment:
-      - HZ_NETWORK_JOIN_MULTICAST_ENABLED=false
-      - HZ_NETWORK_JOIN_TCPIP_ENABLED=true
-      - HZ_NETWORK_JOIN_TCPIP_MEMBERS=middleware
-
-  processing-unit:
-    build: ./processing-unit
-    networks:
-      - hz-net
-    depends_on:
-      - middleware
-    environment:
-      - HZ_HOST=middleware
-      - HZ_PORT=5701
-    deploy:
-      replicas: 3
 networks:
   hz-net:
     driver: bridge
+
+services:
+  middleware:
+    image: hazelcast/hazelcast:5.3.0
+    hostname: hz-middleware
+    container_name: hz-middleware
+    ports:
+      - "5701-5705:5701-5705"
+    environment:
+      - HZ_CLUSTERNAME=dev
+      - HZ_NETWORK_PUBLICADDRESS=hz-middleware
+    networks:
+      - hz-net
+
+  api-gateway:
+    build: ./api-gateway
+    environment:
+      - HZ_HOST=hz-middleware
+      - HZ_PORT=5701
+      - HZ_CLUSTERNAME=dev
+    ports:
+      - "5000:5000"
+    depends_on:
+      - middleware
+    networks:
+      - hz-net
+
+  processing-unit:
+    build: ./processing-unit
+    environment:
+      - HZ_HOST=hz-middleware
+      - HZ_PORT=5701
+      - HZ_CLUSTERNAME=dev
+    depends_on:
+      middleware:
+        condition: service_healthy
+    networks:
+      - hz-net
