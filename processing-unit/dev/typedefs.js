@@ -15,5 +15,7 @@
  * @property {import("../plugins/pu/mqtt")} mqtt
  * @property {import("./../plugins/elasticsearch/elasticsearch")} elasticsearch
  * @property {import("./../plugins/performance/performanceMonitor")} performanceMonitor
+ * @property {import("./../plugins/performance/requestsPerSecond")} requestsPerSecond
+ * @property {import("./../plugins/performance/responseTime")} responseTime
  */
 

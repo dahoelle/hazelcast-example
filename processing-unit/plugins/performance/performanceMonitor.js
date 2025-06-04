@@ -12,43 +12,45 @@ const plugin = async function (fastify, opts) {
 	const maxSavedRoutines = 2;
 	const maxSavedRoutinesTime = (routineDelayMs * maxSavedRoutines) / 1000;
 
-	// Defines the saved metrics
-	const requestCount = [0];
+	/**
+	 * Inserts a new entry to the start of the array. Removes the last
+	 * entry if the max length is now exceeded
+	 * @param {T[]} metrics
+	 * @param {T} empty
+	 */
+	const unshiftMetrics = function (metrics, empty) {
+		const count = metrics.unshift(empty);
+		if (count > maxSavedRoutines) {
+			metrics.pop();
+		}
+	};
 
 	/**
 	 * Resets the collected performance metrics after a cluster has been added.
 	 * This enables the deployment manger to have shorter cooldowns, as the metrics are reset after adding a new cluster
 	 */
-	const resetPerformanceMetrics = function () {
-		return; //! Check whats better on or off
-
-		requestCount.splice(0, requestCount.length);
-		requestCount.push(0);
-	};
+	const resetPerformanceMetrics = function () {};
 
 	const monitorRoutine = async function () {
-		// Determine the requests per second
-		const sum = requestCount.reduce((acc, current) => acc + current, 0);
-		const divider = (maxSavedRoutinesTime / maxSavedRoutines) * requestCount.length;
-		const requestsPerSecond = sum / divider;
-		fastify.log.info(`[+] Requests per second = ${sum} / ${divider} = ${requestsPerSecond}`);
+		const requestsPerSecond = fastify.requestsPerSecond.getRequestsPerSecond();
+		const averageResponseTime = fastify.responseTime.getAverageResponseTime();
 
 		// SEnd the performance data to the messaging grid
 		const url = `http://${process.env.MIDDLEWARE_NAME}:${process.env.MIDDLEWARE_PORT}/performance`;
-		await axios.post(url, { processingUnit: process.env.PU_NAME, requestsPerSecond, uptime: process.uptime() });
-
-		// Cycle request arrays (FIFO queue)
-		const count = requestCount.unshift(0);
-		if (count > maxSavedRoutines) {
-			requestCount.pop();
-		}
+		await axios.post(url, {
+			processingUnit: process.env.PU_NAME,
+			requestsPerSecond,
+			averageResponseTime,
+			uptime: process.uptime(),
+		});
 
 		// Save performance data in ElasticSearch
 		await fastify.elasticsearch.post({
-			index: 'pu_requests_per_second',
+			index: 'pu_performance',
 			data: {
-				count: requestsPerSecond,
-				name: process.env.PU_NAME,
+				processingUnit: process.env.PU_NAME,
+				requestsPerSecond,
+				averageResponseTime,
 			},
 		});
 	};
@@ -56,31 +58,21 @@ const plugin = async function (fastify, opts) {
 	// Start the monitor routine
 	setInterval(monitorRoutine, routineDelayMs);
 
-	//
-	fastify.addHook('onRequest', async (request, reply) => {
-		requestCount[0] = requestCount[0] + 1;
-	});
-
-	fastify.addHook('onResponse', async (request, reply) => {
-		const timeMs = reply.elapsedTime;
-		await fastify.elasticsearch.post({
-			index: 'pu_response_time',
-			data: {
-				time_ms: timeMs,
-				name: process.env.PU_NAME,
-				method: request.method,
-				url: request.url,
-			},
-		});
-	});
-
 	if (fastify.performanceMonitor == null) {
 		fastify.decorate('performanceMonitor', {
+			routineDelayMs,
+			maxSavedRoutines,
+			maxSavedRoutinesTime,
 			resetPerformanceMetrics,
+			unshiftMetrics,
 		});
 	}
 
+	module.exports.routineDelayMs = routineDelayMs;
+	module.exports.maxSavedRoutines = maxSavedRoutines;
+	module.exports.maxSavedRoutinesTime = maxSavedRoutinesTime;
 	module.exports.resetPerformanceMetrics = resetPerformanceMetrics;
+	module.exports.unshiftMetrics = unshiftMetrics;
 };
 
 module.exports = fp(plugin, {
