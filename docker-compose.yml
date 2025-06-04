@@ -5,6 +5,10 @@ networks:
     driver: bridge
     name: hazelcast_network
 
+volumes:
+  mariadb_data:
+  elastic_data:
+
 services:
   # Used to display & visualize the individual Hazelcast clusters
   management-center:
@@ -76,7 +80,7 @@ services:
     ports:
       - 3306:3306
     volumes:
-      - ./database:/var/lib/mysql
+      - mariadb_data:/var/lib/mysql
     networks:
       - hazelcast_network
 
@@ -99,7 +103,7 @@ services:
     image: elasticsearch:7.17.10
     restart: always
     volumes:
-      - ./elasticsearch:/var/lib/elasticsearch/data
+      - elastic_data:/var/lib/elasticsearch/data
     environment:
       - discovery.type=single-node
       - http.port=9200
