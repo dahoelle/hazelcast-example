@@ -36,7 +36,12 @@ const plugin = async function (fastify, opts) {
 		processingUnits.push(new ProcessingUnitData({ name, port }));
 
 		// Ensures that the monitor does include all PUs even if they don't have any requests
-		fastify.deploymentMonitor.setPerformanceOfPU({ processingUnit: name, requestsPerSecond: 0, uptime: 0 });
+		fastify.deploymentMonitor.setPerformanceOfPU({
+			processingUnit: name,
+			requestsPerSecond: 0,
+			averageResponseTime: 0,
+			uptime: 0,
+		});
 	};
 
 	/**

@@ -12,12 +12,14 @@ const plugin = async function (fastify, opts) {
 		 * @param {Object} opt
 		 * @param {String} opt.name
 		 * @param {Number} opt.requestsPerSecond
+		 * @param {Number} opt.averageResponseTime
 		 * @param {Number} opt.uptime - In seconds
 		 */
-		constructor({ name, uptime, requestsPerSecond }) {
+		constructor({ name, uptime, requestsPerSecond, averageResponseTime }) {
 			this.name = name;
 			this.uptime = uptime;
 			this.requestsPerSecond = requestsPerSecond;
+			this.averageResponseTime = averageResponseTime;
 			this.timestamp = new Date().valueOf();
 		}
 	}
@@ -37,15 +39,17 @@ const plugin = async function (fastify, opts) {
 	 * @param {Object} opt
 	 * @param {String} opt.processingUnit
 	 * @param {Number} opt.requestsPerSecond
+	 * @param {Number} opt.averageResponseTime
 	 * @param {Number} opt.uptime
 	 */
-	const setPerformanceOfPU = function ({ processingUnit, requestsPerSecond, uptime }) {
+	const setPerformanceOfPU = function ({ processingUnit, requestsPerSecond, averageResponseTime, uptime }) {
 		requestsPerPU.delete(processingUnit);
 		requestsPerPU.set(
 			processingUnit,
 			new ProcessingUnitData({
 				name: processingUnit,
 				requestsPerSecond,
+				averageResponseTime,
 				uptime,
 			})
 		);
@@ -94,7 +98,8 @@ const plugin = async function (fastify, opts) {
 		}
 
 		// If a PU has more requests per second than the threshold, instantiate a new instance
-		const requiresCreation = await fastify.metricRequestsPerSecond.requiresCreation({ units: processingUnits });
+		const requiresCreation = await fastify.metricsResponseTime.requiresCreation({ units: processingUnits });
+		// const requiresCreation = await fastify.metricRequestsPerSecond.requiresCreation({ units: processingUnits });
 		if (requiresCreation) {
 			const lastPU = await fastify.messagingRegister.getLastProcessingUnit();
 			const lastNr = await fastify.deploymentContainer.getPUIndexFromName({ name: lastPU.name });
@@ -111,7 +116,8 @@ const plugin = async function (fastify, opts) {
 		}
 
 		// If no PU is below the decrease threshold, return immediately
-		const requiresDeletion = await fastify.metricRequestsPerSecond.requiresDeletion({ units: processingUnits });
+		const requiresDeletion = await fastify.metricsResponseTime.requiresDeletion({ units: processingUnits });
+		// const requiresDeletion = await fastify.metricRequestsPerSecond.requiresDeletion({ units: processingUnits });
 		if (requiresDeletion == false) {
 			return;
 		}
