@@ -53,7 +53,15 @@ const plugin = async function (fastify, opts) {
 		const index = processingUnits.findIndex((data) => data.name == name);
 		processingUnits.splice(index, 1);
 
-		// TODO: Wait short amount of time to resolve pending requests
+		// TODO: Sollte der monitor auf das Abschalten warten?
+
+		// Wait x times the average response time of the PU to ensure that all requests have been fulfilled
+		const performance = fastify.deploymentMonitor.performancePerPU.get(name);
+		if (performance != null) {
+			const delay = performance.averageResponseTime * 5;
+			fastify.log.info(`[+] Waiting ${delay} ms before removing the container ${name} to ensure there are no open requests`);
+			await new Promise((resolve) => setTimeout(resolve, delay));
+		}
 
 		// Shutdown the Docker containers
 		await fastify.deploymentContainer.removeProcessingUnit({ processingUnit: name });

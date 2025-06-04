@@ -33,7 +33,7 @@ const plugin = async function (fastify, opts) {
 	 * Stores the request count for the ProcessingUnit within the current interval
 	 * @type {Map<String, ProcessingUnitData>}
 	 */
-	const requestsPerPU = new Map();
+	const performancePerPU = new Map();
 
 	/**
 	 * @param {Object} opt
@@ -43,8 +43,8 @@ const plugin = async function (fastify, opts) {
 	 * @param {Number} opt.uptime
 	 */
 	const setPerformanceOfPU = function ({ processingUnit, requestsPerSecond, averageResponseTime, uptime }) {
-		requestsPerPU.delete(processingUnit);
-		requestsPerPU.set(
+		performancePerPU.delete(processingUnit);
+		performancePerPU.set(
 			processingUnit,
 			new ProcessingUnitData({
 				name: processingUnit,
@@ -63,7 +63,7 @@ const plugin = async function (fastify, opts) {
 	 */
 	const waitForPuData = async function ({ processingUnit, timeout = 10000 }) {
 		const start = Date.now();
-		while (!requestsPerPU.has(processingUnit)) {
+		while (!performancePerPU.has(processingUnit)) {
 			const time = Date.now() - start;
 			if (time >= timeout) {
 				return false;
@@ -82,7 +82,7 @@ const plugin = async function (fastify, opts) {
 	const monitorRoutine = async function () {
 		await removeUnresponsivePUs();
 
-		const processingUnits = Array.from(requestsPerPU.values());
+		const processingUnits = Array.from(performancePerPU.values());
 
 		// Ensures that there is at least one PU. If the last PU has been removed due to
 		// inactivity/unresponsiveness, a new PU must be instantiated
@@ -98,8 +98,9 @@ const plugin = async function (fastify, opts) {
 		}
 
 		// If a PU has more requests per second than the threshold, instantiate a new instance
-		const requiresCreation = await fastify.metricsResponseTime.requiresCreation({ units: processingUnits });
-		// const requiresCreation = await fastify.metricRequestsPerSecond.requiresCreation({ units: processingUnits });
+		// TODO: Über config regeln
+		// const requiresCreation = await fastify.metricsResponseTime.requiresCreation({ units: processingUnits });
+		const requiresCreation = await fastify.metricRequestsPerSecond.requiresCreation({ units: processingUnits });
 		if (requiresCreation) {
 			const lastPU = await fastify.messagingRegister.getLastProcessingUnit();
 			const lastNr = await fastify.deploymentContainer.getPUIndexFromName({ name: lastPU.name });
@@ -116,8 +117,9 @@ const plugin = async function (fastify, opts) {
 		}
 
 		// If no PU is below the decrease threshold, return immediately
-		const requiresDeletion = await fastify.metricsResponseTime.requiresDeletion({ units: processingUnits });
-		// const requiresDeletion = await fastify.metricRequestsPerSecond.requiresDeletion({ units: processingUnits });
+		// TODO: Über config regeln
+		// const requiresDeletion = await fastify.metricsResponseTime.requiresDeletion({ units: processingUnits });
+		const requiresDeletion = await fastify.metricRequestsPerSecond.requiresDeletion({ units: processingUnits });
 		if (requiresDeletion == false) {
 			return;
 		}
@@ -139,7 +141,7 @@ const plugin = async function (fastify, opts) {
 		fastify.log.info(`[+] Removing PU instance ${lastPU.name}`);
 		await fastify.messagingRegister.removeProcessingUnit({ name: lastPU.name });
 		await waitForNextAction();
-		requestsPerPU.delete(lastPU.name);
+		performancePerPU.delete(lastPU.name);
 	};
 
 	/**
@@ -148,7 +150,7 @@ const plugin = async function (fastify, opts) {
 	 * PU containers are reachable
 	 */
 	const removeUnresponsivePUs = async function () {
-		const processingUnits = Array.from(requestsPerPU.values());
+		const processingUnits = Array.from(performancePerPU.values());
 		const now = new Date().valueOf();
 
 		// Determine the PUs that have not been sending performance updates
@@ -164,7 +166,7 @@ const plugin = async function (fastify, opts) {
 			fastify.log.info(`[+] Removing PU instance ${name} due to not sending performance data`);
 			await fastify.messagingRegister.removeProcessingUnit({ name: name });
 
-			requestsPerPU.delete(name);
+			performancePerPU.delete(name);
 		}
 	};
 
@@ -184,11 +186,13 @@ const plugin = async function (fastify, opts) {
 
 	if (fastify.deploymentMonitor == null) {
 		fastify.decorate('deploymentMonitor', {
+			performancePerPU,
 			setPerformanceOfPU,
 			ProcessingUnitData,
 		});
 	}
 
+	module.exports.performancePerPU = performancePerPU;
 	module.exports.setPerformanceOfPU = setPerformanceOfPU;
 	module.exports.ProcessingUnitData = ProcessingUnitData;
 };
