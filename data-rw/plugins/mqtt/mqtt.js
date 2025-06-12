@@ -21,7 +21,7 @@ const plugin = async function (fastify, opts) {
 	const init = async function () {
 		connection = await amqplib.connect({
 			username: 'admin',
-			password: 'admin',
+			password: '+4rQ29=PE53g-@:@XL1',
 			port: 5672,
 			protocol: 'amqp',
 			vhost: '/',

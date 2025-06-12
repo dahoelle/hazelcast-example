@@ -5,15 +5,12 @@ networks:
     driver: bridge
     name: hazelcast_network
 
-volumes:
-  mariadb_data:
-  elastic_data:
-
 services:
   # Used to display & visualize the individual Hazelcast clusters
   management-center:
     container_name: management-center
     image: hazelcast/management-center:latest
+    restart: unless-stopped
     ports:
       - 8080:8080
     environment:
@@ -26,6 +23,7 @@ services:
   middleware:
     container_name: middleware
     image: node:lts-alpine
+    restart: unless-stopped
     volumes:
       - ./middleware:/usr/src/app
       - ./hazelcast.yaml:/hazelcast.yaml # Hazelcast config is copied into new docker containers
@@ -46,6 +44,7 @@ services:
   data-rw:
     container_name: data-rw
     image: node:lts-alpine
+    restart: unless-stopped
     volumes:
       - ./data-rw:/usr/src/app
     command: node /usr/src/app/server.js
@@ -56,15 +55,16 @@ services:
   rabbitmq:
     container_name: rabbitmq
     image: rabbitmq:3-management
+    restart: unless-stopped
     ports:
       - 5672:5672
       - 15672:15672
     environment:
       RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin
+      RABBITMQ_DEFAULT_PASS: +4rQ29=PE53g-@:@XL1
     volumes:
-      - ./data-pump/lib:/var/lib/rabbitmq/
-      - ./data-pump/log:/var/log/rabbitmq
+      - ./volumes/data/rabbitmq/lib:/var/lib/rabbitmq/
+      - ./volumes/data/rabbitmq/log:/var/log/rabbitmq
     networks:
       - hazelcast_network
 
@@ -72,15 +72,19 @@ services:
   mariadb:
     container_name: mariadb
     image: mariadb
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW --log-bin
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_ROOT_PASSWORD: +4rQ29=PE53g-@:@XL1
       MYSQL_USER: admin
-      MYSQL_PASSWORD: admin
+      MYSQL_PASSWORD: +4rQ29=PE53g-@:@XL1
       MYSQL_DATABASE: space-based
+      MARIADB_AUTO_UPGRADE: 1
     ports:
       - 3306:3306
     volumes:
-      - mariadb_data:/var/lib/mysql
+      - ./volumes/config/mariadb:/etc/mysql/
+      - ./volumes/data/mariadb:/var/lib/mysql
     networks:
       - hazelcast_network
 
@@ -88,9 +92,9 @@ services:
   grafana:
     container_name: grafana
     image: grafana/grafana
-    restart: always
+    restart: unless-stopped
     volumes:
-      - ./grafana:/var/lib/grafana
+      - ./volumes/data/grafana:/var/lib/grafana
     ports:
       - 80:3000
     networks:
@@ -101,9 +105,9 @@ services:
   elasticsearch:
     container_name: elasticsearch
     image: elasticsearch:7.17.10
-    restart: always
+    restart: unless-stopped
     volumes:
-      - elastic_data:/var/lib/elasticsearch/data
+      - ./volumes/data/elasticsearch:/var/lib/elasticsearch/data
     environment:
       - discovery.type=single-node
       - http.port=9200

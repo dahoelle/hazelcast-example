@@ -19,7 +19,7 @@ const plugin = async function (fastify, opts) {
 		const connection = mysql.createConnection({
 			host: '217.154.206.223',
 			user: 'admin',
-			password: 'admin',
+			password: '+4rQ29=PE53g-@:@XL1',
 			database: 'space-based',
 		});
 
@@ -68,4 +68,3 @@ module.exports = fp(plugin, {
 	fastify: '>=3.0.0',
 	name: 'fastify-mysql',
 });
-
