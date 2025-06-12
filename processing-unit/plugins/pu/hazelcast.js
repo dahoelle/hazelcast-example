@@ -51,8 +51,16 @@ const plugin = async function (fastify, opts) {
 		await axios.post(url, { name: process.env.PU_NAME, port: process.env.PU_PORT });
 
 		// Initialize the tables
-		// TODO: Generischer
-		fastify.person.init();
+		try {
+			fastify.score.init();
+			fastify.image.init();
+			fastify.player.init();
+			fastify.playerScore.init();
+			fastify.playerImage.init();
+			fastify.friend.init();
+		} catch (error) {
+			fastify.log.info(`[-] Unable to register hazelcast models`);
+		}
 	};
 
 	/**

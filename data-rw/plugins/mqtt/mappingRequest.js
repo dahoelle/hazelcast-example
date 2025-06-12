@@ -28,8 +28,16 @@ const plugin = async function (fastify, opts) {
 			return;
 		}
 
-		//
-		const mappingColumns = result.data.map((item) => `${item.COLUMN_NAME} ${item.DATA_TYPE}`);
+		// Convert blob fields from Mariadb to varchar in hazelcast (Hazelcast allows longer strings & does not support blob values)
+		const mappingColumns = [];
+		for (const row of result.data) {
+			if (row.DATA_TYPE == "blob"){
+				row.DATA_TYPE = "varchar"
+			}
+
+			mappingColumns.push(`${row.COLUMN_NAME} ${row.DATA_TYPE}`)
+		}
+
 		const mappingStatement = `
                 CREATE MAPPING ${data.table} (
                     ${mappingColumns.join(',\n')}

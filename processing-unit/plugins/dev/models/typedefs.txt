@@ -1,0 +1,45 @@
+/**
+ * @typedef {Friend}
+ * @property {String} xidFriend
+ * @property {String} __key
+ * @property {String} xidPlayerA
+ * @property {String} xidPlayerB
+ */
+
+/**
+ * @typedef {Image}
+ * @property {String} xidImage
+ * @property {String} __key
+ * @property {String} sContent
+ */
+
+/**
+ * @typedef {Score}
+ * @property {String} xidScore
+ * @property {String} __key
+ * @property {Number} nScore
+ * @property {Date} dTimestamp
+ */
+
+/**
+ * @typedef {Player}
+ * @property {String} xidPlayer
+ * @property {String} __key
+ * @property {String} sPlayerName
+ */
+
+/**
+ * @typedef {PlayerImage}
+ * @property {String} xidPlayerImage
+ * @property {String} __key
+ * @property {String} xidPlayer
+ * @property {String} xidImage
+ */
+
+/**
+ * @typedef {PlayerScore}
+ * @property {String} xidPlayerScore
+ * @property {String} __key
+ * @property {String} xidPlayer
+ * @property {String} xidScore
+ */

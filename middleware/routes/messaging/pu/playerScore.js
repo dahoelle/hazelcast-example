@@ -5,7 +5,7 @@
  * @param {*} opts
  */
 module.exports = async function (fastify, opts) {
-	fastify.get('/person', async function (request, reply) {
+	fastify.get('/playerScore', async function (request, reply) {
 		const processingUnit = fastify.messagingRegister.getNextProcessingUnitUrl();
 		const data = await fastify.messagingRequest.sendRequest({
 			processingUnit,
@@ -18,7 +18,7 @@ module.exports = async function (fastify, opts) {
 		return reply;
 	});
 
-	fastify.get('/person/:xidPerson', async function (request, reply) {
+	fastify.get('/playerScore/:xidPlayerScore', async function (request, reply) {
 		fastify.log.info(request);
 		const processingUnit = fastify.messagingRegister.getNextProcessingUnitUrl();
 		const data = await fastify.messagingRequest.sendRequest({
@@ -32,7 +32,7 @@ module.exports = async function (fastify, opts) {
 		return reply;
 	});
 
-	fastify.post('/person', async function (request, reply) {
+	fastify.post('/playerScore', async function (request, reply) {
 		const processingUnit = fastify.messagingRegister.getNextProcessingUnitUrl();
 		const data = await fastify.messagingRequest.sendRequest({
 			processingUnit,

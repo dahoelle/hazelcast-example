@@ -2,32 +2,26 @@
 
 const fp = require('fastify-plugin');
 const { v4: uuid } = require('uuid');
-const hazelcast = require('./hazelcast');
-const query = require('./query/query');
+const hazelcast = require('./../hazelcast');
+const query = require('./../query/query');
 
 /**
  * @param {Fastify} fastify
  * @param {*} opts
  */
 const plugin = async function (fastify, opts) {
-	class Person {
+	class <TABLE> {
 		/**
 		 * @param {object} opt
-		 * @param {String} opt.xidPerson
-		 * @param {String} opt.sFirstName
-		 * @param {String} opt.sLastName
-		 * @param {String} opt.__key
+		 <PARAMS_JSDOC>
 		 */
-		constructor({ xidPerson, sFirstName, sLastName, __key }) {
-			this.xidPerson = xidPerson;
-			this.sFirstName = sFirstName;
-			this.sLastName = sLastName;
-			this.__key = __key;
+		constructor({ <PARAMS_LIST> }) {
+			<PARAMS_ASSIGN>
 		}
 	}
 
 	const init = async function () {
-		const table = 'Person';
+		const table = '<TABLE>';
 		const state = await hazelcast.getTableState({ table: table });
 
 		// If the table is initialized, or another PU is loading it, return
@@ -37,7 +31,7 @@ const plugin = async function (fastify, opts) {
 		await fastify.mqtt.publish({
 			queue: 'MappingRequest',
 			message: {
-				table: 'Person',
+				table: '<TABLE>',
 			},
 		});
 	};
@@ -47,7 +41,7 @@ const plugin = async function (fastify, opts) {
 	 * @param {String} opt.data
 	 */
 	const onMappingResponse = async function ({ data }) {
-		fastify.log.info(`[+] Reading the Person mapping from the Data-Reader`);
+		fastify.log.info(`[+] Reading the <TABLE> mapping from the Data-Reader`);
 
 		await hazelcast.execute({
 			statement: data,
@@ -56,8 +50,8 @@ const plugin = async function (fastify, opts) {
 		await fastify.mqtt.publish({
 			queue: 'ReadRequest',
 			message: {
-				table: 'Person',
-				statement: 'SELECT * FROM Person',
+				table: '<TABLE>',
+				statement: 'SELECT * FROM <TABLE>',
 			},
 		});
 	};
@@ -67,26 +61,27 @@ const plugin = async function (fastify, opts) {
 	 * @param {Object[]} opt.data
 	 */
 	const onReadResponse = async function ({ data }) {
-		fastify.log.info(`[+] Reading ${data.length} Person from the Data-Reader`);
+		fastify.log.info(`[+] Reading ${data.length} <TABLE> from the Data-Reader`);
 
 		for (const item of data) {
-			const model = new Person(item);
+			const model = new <TABLE>(item);
 			await create({ model, toSql: false });
 		}
 	};
 
 	/**
 	 * @param {object} opt
-	 * @param {Person} opt.model
+	 * @param {<TABLE>} opt.model
 	 * @param {boolean} opt.toHazelCast - False to prevent writing to Hazelcast
 	 * @param {boolean} opt.toSql - False to prevent writing to the SQL database
 	 */
 	const create = async function ({ model, toHazelCast = true, toSql = true }) {
-		if (model.xidPerson == null) model.xidPerson = uuid();
+		if (model.<PRIMARY_KEY> == null) model.<PRIMARY_KEY> = uuid();
+		model.__key = model.<PRIMARY_KEY>;
 
 		const statement = ` 
-            INSERT INTO Person (__key, xidPerson, sFirstName, sLastName)
-            VALUES ('${model.xidPerson}', '${model.xidPerson}', '${model.sFirstName}', '${model.sLastName}')`;
+            INSERT INTO <TABLE> (<PARAMS_LIST>)
+            VALUES (<PARAMS_LIST_INSERT>)`;
 
 		await write({ statement: statement, toHazelCast, toSql });
 	};
@@ -94,40 +89,31 @@ const plugin = async function (fastify, opts) {
 	/**
 	 * @param {object} opt
 	 * @param {object} opt.filters
-	 * @param {query.Filter} opt.filters.xidPerson
-	 * @param {query.Filter} opt.filters.sFirstName
-	 * @param {query.Filter} opt.filters.sLastName
-	 * @param {query.Filter} opt.filters.__key
+	  <PARAMS_LIST_FILTER>
 	 * @param {object} opt.sorters
-	 * @param {query.Sorter} opt.sorters.xidPerson
-	 * @param {query.Sorter} opt.sorters.sFirstName
-	 * @param {query.Sorter} opt.sorters.sLastName
-	 * @param {query.Sorter} opt.sorters.__key
+	  <PARAMS_LIST_SORTER>
 	 */
 	const get = async function ({ filters, sorters }) {
 		const statement = `
-			SELECT * 
-			FROM Person
-			${fastify.query.getWhereStatement({ filters })}
-			${fastify.query.getOrderStatement({ sorters })}`;
+            SELECT * 
+            FROM <TABLE>
+            ${fastify.query.getWhereStatement({ filters })}
+            ${fastify.query.getOrderStatement({ sorters })}`;
 
 		// fastify.log.info(statement);
 		const rows = await fastify.hazelcast.execute({ statement });
 
-		/** @type {Person[]} */
-		const persons = [];
+		/** @type {<TABLE>[]} */
+		const entries = [];
 		for await (const row of rows) {
-			persons.push(
-				new Person({
-					xidPerson: row.xidPerson,
-					sFirstName: row.sFirstName,
-					sLastName: row.sLastName,
-					__key: row.__key,
+			entries.push(
+				new <TABLE>({
+					<PARAMS_LIST_OBJECT_ROW>
 				})
 			);
 		}
 
-		return persons;
+		return entries;
 	};
 
 	/**
@@ -147,18 +133,18 @@ const plugin = async function (fastify, opts) {
 			await fastify.mqtt.publish({
 				queue: 'WriteRequest',
 				message: {
-					table: 'Person',
+					table: '<TABLE>',
 					statement: statement,
 				},
 			});
 		}
 	};
 
-	fastify.decorate('person', {
+	fastify.decorate('<PLUGIN>', {
 		init,
 		onMappingResponse,
 		onReadResponse,
-		model: Person,
+		model: <TABLE>,
 		create,
 		get,
 		write,
@@ -167,7 +153,7 @@ const plugin = async function (fastify, opts) {
 	module.exports.init = init;
 	module.exports.onMappingResponse = onMappingResponse;
 	module.exports.onReadResponse = onReadResponse;
-	module.exports.model = Person;
+	module.exports.model = <TABLE>;
 	module.exports.get = get;
 	module.exports.write = write;
 	module.exports.create = create;
@@ -175,6 +161,5 @@ const plugin = async function (fastify, opts) {
 
 module.exports = fp(plugin, {
 	fastify: '>=3.0.0',
-	name: 'fastify-person',
+	name: 'fastify-<PLUGIN>',
 });
-
