@@ -11,5 +11,23 @@ module.exports = async function (fastify, opts) {
 		reply.send({ success: true, data: result });
 		return reply;
 	});
+
+	fastify.post('/simulator/player', async function (request, reply) {
+		const result = await fastify.simulator.createRandomPlayer();
+		reply.send({ success: true, data: result });
+		return reply;
+	});
+
+	fastify.post('/simulator/score', async function (request, reply) {
+		const result = await fastify.simulator.createRandomScore();
+		reply.send({ success: true, data: result });
+		return reply;
+	});
+
+	fastify.post('/simulator/friend', async function (request, reply) {
+		const result = await fastify.simulator.createRandomFriend();
+		reply.send({ success: true, data: result });
+		return reply;
+	});
 };
 

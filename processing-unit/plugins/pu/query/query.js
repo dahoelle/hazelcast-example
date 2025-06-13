@@ -38,7 +38,16 @@ const plugin = async function (fastify, opts) {
 				continue;
 			}
 
-			checks.push(`${property} ${filter.operator} '${filter.value}'`);
+			switch (filter.operator) {
+				// Don't escape certain filters in ticks
+				case 'in':
+					checks.push(`${property} ${filter.operator} ${filter.value}`);
+					break;
+
+				default:
+					checks.push(`${property} ${filter.operator} '${filter.value}'`);
+					break;
+			}
 		}
 
 		const statement = `WHERE ${checks.join(' AND ')}`;
