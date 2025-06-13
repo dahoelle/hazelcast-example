@@ -19,6 +19,11 @@ const plugin = async function (fastify, opts) {
 		}
 	}
 
+	/**
+	 * @param {object} opt
+	 * @param {Filter[]} opt.filters
+	 * @returns
+	 */
 	const getWhereStatement = function ({ filters }) {
 		if (filters == null) {
 			return '';
@@ -51,6 +56,11 @@ const plugin = async function (fastify, opts) {
 		}
 	}
 
+	/**
+	 * @param {object} opt
+	 * @param {Sorter[]} opt.sorters
+	 * @returns
+	 */
 	const getOrderStatement = function ({ sorters }) {
 		if (sorters == null) {
 			return '';

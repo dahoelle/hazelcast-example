@@ -9,8 +9,10 @@ module.exports = async function (fastify, opts) {
 		const query = request.query;
 		const filters = query.filters != null ? JSON.parse(query.filters) : null;
 		const sorters = query.sorters != null ? JSON.parse(query.sorters) : null;
+		const limit = query.limit ?? 100;
+		const offset = query.offset ?? 0;
 
-		const result = await fastify.playerScore.get({ filters, sorters });
+		const result = await fastify.playerScore.get({ filters, sorters, offset, limit });
 		reply.send({ success: true, data: result });
 		return reply;
 	});

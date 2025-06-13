@@ -90,6 +90,7 @@ const plugin = async function (fastify, opts) {
             VALUES ('${model.xidScore}', '${model.__key}', ${model.nScore}, ${model.nTimestamp})`;
 
     await write({ statement: statement, toHazelCast, toSql });
+    return model;
   };
 
   /**
@@ -104,13 +105,16 @@ const plugin = async function (fastify, opts) {
    * @param {query.Sorter} opt.sorters.__key
    * @param {query.Sorter} opt.sorters.nScore
    * @param {query.Sorter} opt.sorters.nTimestamp
+   * @param {Number} opt.offset
+   * @param {Number} opt.limit
    */
-  const get = async function ({ filters, sorters }) {
+  const get = async function ({ filters, sorters, offset = 0, limit = 100 }) {
     const statement = `
             SELECT * 
             FROM Score
             ${fastify.query.getWhereStatement({ filters })}
-            ${fastify.query.getOrderStatement({ sorters })}`;
+            ${fastify.query.getOrderStatement({ sorters })} 
+			LIMIT ${offset}, ${limit}`;
 
     // fastify.log.info(statement);
     const rows = await fastify.hazelcast.execute({ statement });

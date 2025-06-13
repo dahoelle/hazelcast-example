@@ -88,6 +88,7 @@ const plugin = async function (fastify, opts) {
             VALUES ('${model.xidImage}', '${model.__key}', '${model.sContent}')`;
 
     await write({ statement: statement, toHazelCast, toSql });
+    return model;
   };
 
   /**
@@ -100,13 +101,16 @@ const plugin = async function (fastify, opts) {
    * @param {query.Sorter} opt.sorters.xidImage
    * @param {query.Sorter} opt.sorters.__key
    * @param {query.Sorter} opt.sorters.sContent
+   * @param {Number} opt.offset
+   * @param {Number} opt.limit
    */
-  const get = async function ({ filters, sorters }) {
+  const get = async function ({ filters, sorters, offset = 0, limit = 100 }) {
     const statement = `
             SELECT * 
             FROM Image
             ${fastify.query.getWhereStatement({ filters })}
-            ${fastify.query.getOrderStatement({ sorters })}`;
+            ${fastify.query.getOrderStatement({ sorters })} 
+			LIMIT ${offset}, ${limit}`;
 
     // fastify.log.info(statement);
     const rows = await fastify.hazelcast.execute({ statement });
