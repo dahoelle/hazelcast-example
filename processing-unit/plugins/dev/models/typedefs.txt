@@ -18,7 +18,7 @@
  * @property {String} xidScore
  * @property {String} __key
  * @property {Number} nScore
- * @property {Date} dTimestamp
+ * @property {Number} nTimestamp
  */
 
 /**

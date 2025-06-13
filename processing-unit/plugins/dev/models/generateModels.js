@@ -58,7 +58,7 @@ const plugin = async function (fastify, opts) {
 			const formatted = await prettier.format(generatedCode, { parser: 'babel' });
 
 			fs.writeFileSync(outputFile, formatted, 'utf8');
-			console.log('File generated and formatted:', outputFile);
+			fastify.log.info('[+] File generated and formatted:', outputFile);
 		});
 	};
 
@@ -85,9 +85,20 @@ const plugin = async function (fastify, opts) {
 			paramsAssign.push(`this.${property.name} = ${property.name};`);
 			paramsJsdoc.push(`* @param {${property.type}} opt.${property.name}`);
 			paramsListObjectRow.push(`${property.name}: row.${property.name}`);
-			paramsListInsert.push(`'\${model.${property.name}}'`);
 			paramsListFilter.push(`* @param {query.Filter} opt.filters.${property.name}`);
 			paramsListSorter.push(`* @param {query.Sorter} opt.sorters.${property.name}`);
+
+			// Change formatting of insert statement based on the data type
+			switch (property.type) {
+				// Don't escape numbers
+				case 'Number':
+					paramsListInsert.push(`\${model.${property.name}}`);
+					break;
+
+				default:
+					paramsListInsert.push(`'\${model.${property.name}}'`);
+					break;
+			}
 		}
 
 		const replacements = {

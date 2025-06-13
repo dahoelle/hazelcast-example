@@ -16,13 +16,13 @@ const plugin = async function (fastify, opts) {
      * @param {String} opt.xidScore
      * @param {String} opt.__key
      * @param {Number} opt.nScore
-     * @param {Date} opt.dTimestamp
+     * @param {Number} opt.nTimestamp
      */
-    constructor({ xidScore, __key, nScore, dTimestamp }) {
+    constructor({ xidScore, __key, nScore, nTimestamp }) {
       this.xidScore = xidScore;
       this.__key = __key;
       this.nScore = nScore;
-      this.dTimestamp = dTimestamp;
+      this.nTimestamp = nTimestamp;
     }
   }
 
@@ -86,8 +86,8 @@ const plugin = async function (fastify, opts) {
     model.__key = model.xidScore;
 
     const statement = ` 
-            INSERT INTO Score (xidScore, __key, nScore, dTimestamp)
-            VALUES ('${model.xidScore}', '${model.__key}', '${model.nScore}', '${model.dTimestamp}')`;
+            INSERT INTO Score (xidScore, __key, nScore, nTimestamp)
+            VALUES ('${model.xidScore}', '${model.__key}', ${model.nScore}, ${model.nTimestamp})`;
 
     await write({ statement: statement, toHazelCast, toSql });
   };
@@ -98,12 +98,12 @@ const plugin = async function (fastify, opts) {
    * @param {query.Filter} opt.filters.xidScore
    * @param {query.Filter} opt.filters.__key
    * @param {query.Filter} opt.filters.nScore
-   * @param {query.Filter} opt.filters.dTimestamp
+   * @param {query.Filter} opt.filters.nTimestamp
    * @param {object} opt.sorters
    * @param {query.Sorter} opt.sorters.xidScore
    * @param {query.Sorter} opt.sorters.__key
    * @param {query.Sorter} opt.sorters.nScore
-   * @param {query.Sorter} opt.sorters.dTimestamp
+   * @param {query.Sorter} opt.sorters.nTimestamp
    */
   const get = async function ({ filters, sorters }) {
     const statement = `
@@ -123,7 +123,7 @@ const plugin = async function (fastify, opts) {
           xidScore: row.xidScore,
           __key: row.__key,
           nScore: row.nScore,
-          dTimestamp: row.dTimestamp,
+          nTimestamp: row.nTimestamp,
         }),
       );
     }
