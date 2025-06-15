@@ -10,7 +10,7 @@
     "test": "tap test/**/*.test.js",
     "start": "node server.js",
     "dev": "fastify start -w -l info -P app.js",
-    "start:debug": "node --inspect=0.0.0.0:9229 server.js"
+    "start:debug": "node --inspect=127.0.0.1:9229 server.js"
   },
   "keywords": [],
   "author": "",

@@ -6,41 +6,38 @@ networks:
     name: hazelcast_network
 
 services:
-  # Used to display & visualize the individual Hazelcast clusters
   management-center:
     container_name: management-center
     image: hazelcast/management-center:latest
     restart: unless-stopped
     ports:
-      - 8080:8080
+      - "127.0.0.1:8080:8080"
     environment:
       - MC_DEFAULT_CLUSTER=dev
-      - MC_DEFAULT_CLUSTER_MEMBERS=217.154.206.223:4001
+      - MC_DEFAULT_CLUSTER_MEMBERS=middleware:4001  # use service name, not localhost
     networks:
       - hazelcast_network
 
-  # The space-based virtualized middleware. Includes messaging-grid & deployment-manager
   middleware:
     container_name: middleware
     image: node:lts-alpine
     restart: unless-stopped
     volumes:
       - ./middleware:/usr/src/app
-      - ./hazelcast.yaml:/hazelcast.yaml # Hazelcast config is copied into new docker containers
-      - /var/run/docker.sock:/var/run/docker.sock # Allows dockerode to access the Docker daemon
+      - ./hazelcast.yaml:/hazelcast.yaml
+      - /var/run/docker.sock:/var/run/docker.sock
     command: node /usr/src/app/server.js
     ports:
-      - 3000:4000
+      - "127.0.0.1:3000:4000"
     environment:
-      - HZ_PORT_START=4100 # Defines the port range of the cluster. Cluster #n has port 4100 + n
-      - PU_PORT_START=3100 # Defines the port range of the PU. PU #n has port           3100 + n
-      - PUBLIC_IP=217.154.206.223
-      - MIDDLEWARE_NAME=middleware # Container name to pass to the instantiated PUs
-      - MIDDLEWARE_PORT=4000 # Container port to pass to the instantiated PUs (internal docker port, not the exposed port)
+      - HZ_PORT_START=4100
+      - PU_PORT_START=3100
+      - PUBLIC_IP=middleware  # use service name internally
+      - MIDDLEWARE_NAME=middleware
+      - MIDDLEWARE_PORT=4000
     networks:
       - hazelcast_network
 
-  #
   data-rw:
     container_name: data-rw
     image: node:lts-alpine
@@ -50,15 +47,15 @@ services:
     command: node /usr/src/app/server.js
     networks:
       - hazelcast_network
-
-  # The space-based data-pump
+    depends_on:
+      - rabbitmq
   rabbitmq:
     container_name: rabbitmq
     image: rabbitmq:3-management
     restart: unless-stopped
     ports:
-      - 5672:5672
-      - 15672:15672
+      - "127.0.0.1:5672:5672"
+      - "127.0.0.1:15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: +4rQ29=PE53g-@:@XL1
@@ -68,7 +65,6 @@ services:
     networks:
       - hazelcast_network
 
-  # The space-based database
   mariadb:
     container_name: mariadb
     image: mariadb
@@ -81,14 +77,13 @@ services:
       MYSQL_DATABASE: space-based
       MARIADB_AUTO_UPGRADE: 1
     ports:
-      - 3306:3306
+      - "127.0.0.1:3306:3306"
     volumes:
       - ./volumes/config/mariadb:/etc/mysql/
       - ./volumes/data/mariadb:/var/lib/mysql
     networks:
       - hazelcast_network
 
-  #
   grafana:
     container_name: grafana
     image: grafana/grafana
@@ -96,12 +91,11 @@ services:
     volumes:
       - ./volumes/data/grafana:/var/lib/grafana
     ports:
-      - 80:3000
+      - "127.0.0.1:80:3000"
     networks:
       - hazelcast_network
     user: "0"
 
-  #
   elasticsearch:
     container_name: elasticsearch
     image: elasticsearch:7.17.10
@@ -112,14 +106,14 @@ services:
       - discovery.type=single-node
       - http.port=9200
       - http.cors.enabled=true
-      - http.cors.allow-origin=http://localhost:1358,http://127.0.0.1:1358
+      - http.cors.allow-origin=http://127.0.0.1:1358
       - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
       - http.cors.allow-credentials=true
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
     ports:
-      - "9200:9200"
-      - "9300:9300"
+      - "127.0.0.1:9200:9200"
+      - "127.0.0.1:9300:9300"
     networks:
       - hazelcast_network
     user: "0"

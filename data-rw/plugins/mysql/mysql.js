@@ -17,7 +17,7 @@ const mysql = require('mysql');
 const plugin = async function (fastify, opts) {
 	const getConnection = function () {
 		const connection = mysql.createConnection({
-			host: '217.154.206.223',
+			host: '127.0.0.1',
 			user: 'admin',
 			password: '+4rQ29=PE53g-@:@XL1',
 			database: 'space-based',
