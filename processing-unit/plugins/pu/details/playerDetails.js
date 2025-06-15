@@ -51,7 +51,7 @@ const plugin = async function (fastify, opts) {
 			return [];
 		}
 
-		return await fastify.score.get({
+		const scores = await fastify.score.get({
 			filters: {
 				xidScore: { operator: 'in', value: `(${xidScores.join(', ')})` },
 			},
@@ -59,6 +59,14 @@ const plugin = async function (fastify, opts) {
 				nScore: { direction: 'ASC' },
 			},
 		});
+
+		const result = [];
+		for (const score of scores) {
+			const nPlacement = await fastify.scoreDetails.getPlacementOfScore({ nScore: score.nScore });
+			result.push({ nPlacement, score });
+		}
+
+		return result;
 	};
 
 	/**

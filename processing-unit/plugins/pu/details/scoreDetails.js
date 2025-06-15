@@ -26,7 +26,7 @@ const plugin = async function (fastify, opts) {
 		const result = [];
 		for (const score of scores) {
 			const player = playersByScore.get(score.xidScore);
-			const nPlacement = await getPlacementOfScore({ xidScore: score.xidScore });
+			const nPlacement = await getPlacementOfScore({ nScore: score.nScore });
 
 			result.push({ score, player, nPlacement });
 		}
@@ -75,20 +75,27 @@ const plugin = async function (fastify, opts) {
 
 	/**
 	 * @param {Object} opt
-	 * @param {String} opt.xidScore
+	 * @param {Number} opt.nScore
 	 */
-	const getPlacementOfScore = async function ({ xidScore }) {
-		// TODO: Over funktioniert in Hazelcast nicht!
+	const getPlacementOfScore = async function ({ nScore }) {
 		const statement = `
-			SELECT sub.nPlacement
-			FROM (
-				SELECT s.*, ROW_NUMBER() OVER (ORDER BY s.nScore DESC) AS nPlacement
-				FROM Score s
-			) AS sub
-			WHERE sub.xidScore =  "${xidScore}"`;
+			SELECT Count(s.xidScore) AS nPlacement
+			FROM Score s
+			WHERE s.nScore >= ${nScore}`;
 
 		const rows = await hazelcast.execute({ statement });
-		return rows[0].nPlacement;
+
+		let nPlacement = null;
+		for await (const row of rows) {
+			nPlacement = row.nPlacement;
+			break;
+		}
+
+		if (nPlacement == null) {
+			return null;
+		}
+
+		return fastify.query.bigIntToNumber(nPlacement);
 	};
 
 	fastify.decorate('scoreDetails', {
