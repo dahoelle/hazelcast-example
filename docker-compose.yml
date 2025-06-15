@@ -24,6 +24,7 @@ services:
     container_name: middleware
     image: node:lts-alpine
     restart: unless-stopped
+    pid: "host" # Give access to system data in /proc
     volumes:
       - ./middleware:/usr/src/app
       - ./hazelcast.yaml:/hazelcast.yaml # Hazelcast config is copied into new docker containers

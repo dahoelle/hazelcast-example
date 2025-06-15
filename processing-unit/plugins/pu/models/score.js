@@ -87,7 +87,7 @@ const plugin = async function (fastify, opts) {
 
 		const statement = ` 
             INSERT INTO Score (xidScore, __key, nScore, nTimestamp)
-            VALUES ('${model.xidScore}', '${model.__key}', ${model.nScore}, '${model.nTimestamp}')`;
+            VALUES ('${model.xidScore}', '${model.__key}', ${model.nScore}, ${model.nTimestamp})`;
 
 		await write({ statement: statement, toHazelCast, toSql });
 		return model;

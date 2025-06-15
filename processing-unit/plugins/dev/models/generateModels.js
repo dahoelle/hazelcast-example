@@ -92,6 +92,7 @@ const plugin = async function (fastify, opts) {
 			switch (property.type) {
 				// Don't escape numbers
 				case 'Number':
+				case 'BigInt':
 					paramsListInsert.push(`\${model.${property.name}}`);
 					break;
 
