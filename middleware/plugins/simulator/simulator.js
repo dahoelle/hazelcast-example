@@ -153,15 +153,13 @@ const plugin = async function (fastify, opts) {
 		await axios.post('http://middleware:4000/model/friend', { xidPlayerA, xidPlayerB });
 	};
 
-	//! Die beiden unteren wären auch für Webseite gut geeignet (Also in pu implementieren?)
-
-	const getPlayerData = async function () {
-		// TODO: Get random player
-		// TODO: Get scores using filter
-		// TODO: Get image of player
-		// TODO: Get list of friends of player
+	const getRandomPlayerData = async function () {
+		const playerData = await getRandomPlayer({});
+		await axios.get(`http://middleware:4000/detail/player/${playerData.xidPlayer}`);
 	};
 
+	//! Die beiden unteren wären auch für Webseite gut geeignet (Also in pu implementieren?)
+	
 	const getTopScores = async function () {
 		// TODO: Get highest scores using sorter & limit + pagination
 	};
