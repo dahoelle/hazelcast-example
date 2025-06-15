@@ -84,7 +84,7 @@ const plugin = async function (fastify, opts) {
 			paramsList.push(`${property.name}`);
 			paramsAssign.push(`this.${property.name} = ${property.name};`);
 			paramsJsdoc.push(`* @param {${property.type}} opt.${property.name}`);
-			paramsListObjectRow.push(`${property.name}: row.${property.name}`);
+
 			paramsListFilter.push(`* @param {query.Filter} opt.filters.${property.name}`);
 			paramsListSorter.push(`* @param {query.Sorter} opt.sorters.${property.name}`);
 
@@ -97,6 +97,19 @@ const plugin = async function (fastify, opts) {
 
 				default:
 					paramsListInsert.push(`'\${model.${property.name}}'`);
+					break;
+			}
+
+			// Handle big ints to convert them into regular numbers
+			//! Assumes bigInts are only used for unix timestamp that can be represented using regular numbers
+			switch (property.type) {
+				// Don't escape numbers
+				case 'BigInt':
+					paramsListObjectRow.push(`${property.name}: fastify.query.bigIntToNumber(row.${property.name})`);
+					break;
+
+				default:
+					paramsListObjectRow.push(`${property.name}: row.${property.name}`);
 					break;
 			}
 		}

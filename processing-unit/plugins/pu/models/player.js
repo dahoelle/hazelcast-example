@@ -1,183 +1,180 @@
-"use strict";
+'use strict';
 
-const fp = require("fastify-plugin");
-const { v4: uuid } = require("uuid");
-const hazelcast = require("./../hazelcast");
-const query = require("./../query/query");
+const fp = require('fastify-plugin');
+const { v4: uuid } = require('uuid');
+const hazelcast = require('./../hazelcast');
+const query = require('./../query/query');
 
 /**
  * @param {Fastify} fastify
  * @param {*} opts
  */
 const plugin = async function (fastify, opts) {
-  class Player {
-    /**
-     * @param {object} opt
-     * @param {String} opt.xidPlayer
-     * @param {String} opt.__key
-     * @param {String} opt.sPlayerName
-     */
-    constructor({ xidPlayer, __key, sPlayerName }) {
-      this.xidPlayer = xidPlayer;
-      this.__key = __key;
-      this.sPlayerName = sPlayerName;
-    }
-  }
+	class Player {
+		/**
+		 * @param {object} opt
+		 * @param {String} opt.xidPlayer
+		 * @param {String} opt.__key
+		 * @param {String} opt.sPlayerName
+		 */
+		constructor({ xidPlayer, __key, sPlayerName }) {
+			this.xidPlayer = xidPlayer;
+			this.__key = __key;
+			this.sPlayerName = sPlayerName;
+		}
+	}
 
-  const init = async function () {
-    const table = "Player";
-    const state = await hazelcast.getTableState({ table: table });
+	const init = async function () {
+		const table = 'Player';
+		const state = await hazelcast.getTableState({ table: table });
 
-    // If the table is initialized, or another PU is loading it, return
-    if (state != null) return;
-    await hazelcast.setTableState({ table: table, state: "Loading" });
+		// If the table is initialized, or another PU is loading it, return
+		if (state != null) return;
+		await hazelcast.setTableState({ table: table, state: 'Loading' });
 
-    await fastify.mqtt.publish({
-      queue: "MappingRequest",
-      message: {
-        table: "Player",
-      },
-    });
-  };
+		await fastify.mqtt.publish({
+			queue: 'MappingRequest',
+			message: {
+				table: 'Player',
+			},
+		});
+	};
 
-  /**
-   * @param {Object} opt
-   * @param {String} opt.data
-   */
-  const onMappingResponse = async function ({ data }) {
-    fastify.log.info(`[+] Reading the Player mapping from the Data-Reader`);
+	/**
+	 * @param {Object} opt
+	 * @param {String} opt.data
+	 */
+	const onMappingResponse = async function ({ data }) {
+		fastify.log.info(`[+] Reading the Player mapping from the Data-Reader`);
 
-    await hazelcast.execute({
-      statement: data,
-    });
+		await hazelcast.execute({
+			statement: data,
+		});
 
-    await fastify.mqtt.publish({
-      queue: "ReadRequest",
-      message: {
-        table: "Player",
-        statement: "SELECT * FROM Player",
-      },
-    });
-  };
+		await fastify.mqtt.publish({
+			queue: 'ReadRequest',
+			message: {
+				table: 'Player',
+				statement: 'SELECT * FROM Player',
+			},
+		});
+	};
 
-  /**
-   * @param {Object} opt
-   * @param {Object[]} opt.data
-   */
-  const onReadResponse = async function ({ data }) {
-    fastify.log.info(`[+] Reading ${data.length} Player from the Data-Reader`);
+	/**
+	 * @param {Object} opt
+	 * @param {Object[]} opt.data
+	 */
+	const onReadResponse = async function ({ data }) {
+		fastify.log.info(`[+] Reading ${data.length} Player from the Data-Reader`);
 
-    for (const item of data) {
-      const model = new Player(item);
-      await create({ model, toSql: false });
-    }
-  };
+		for (const item of data) {
+			const model = new Player(item);
+			await create({ model, toSql: false });
+		}
+	};
 
-  /**
-   * @param {object} opt
-   * @param {Player} opt.model
-   * @param {boolean} opt.toHazelCast - False to prevent writing to Hazelcast
-   * @param {boolean} opt.toSql - False to prevent writing to the SQL database
-   */
-  const create = async function ({ model, toHazelCast = true, toSql = true }) {
-    if (model.xidPlayer == null) model.xidPlayer = uuid();
-    model.__key = model.xidPlayer;
+	/**
+	 * @param {object} opt
+	 * @param {Player} opt.model
+	 * @param {boolean} opt.toHazelCast - False to prevent writing to Hazelcast
+	 * @param {boolean} opt.toSql - False to prevent writing to the SQL database
+	 */
+	const create = async function ({ model, toHazelCast = true, toSql = true }) {
+		if (model.xidPlayer == null) model.xidPlayer = uuid();
+		model.__key = model.xidPlayer;
 
-    const statement = ` 
+		const statement = ` 
             INSERT INTO Player (xidPlayer, __key, sPlayerName)
             VALUES ('${model.xidPlayer}', '${model.__key}', '${model.sPlayerName}')`;
 
-    await write({ statement: statement, toHazelCast, toSql });
-    return model;
-  };
+		await write({ statement: statement, toHazelCast, toSql });
+		return model;
+	};
 
-  /**
-   * @param {object} opt
-   * @param {object} opt.filters
-   * @param {query.Filter} opt.filters.xidPlayer
-   * @param {query.Filter} opt.filters.__key
-   * @param {query.Filter} opt.filters.sPlayerName
-   * @param {object} opt.sorters
-   * @param {query.Sorter} opt.sorters.xidPlayer
-   * @param {query.Sorter} opt.sorters.__key
-   * @param {query.Sorter} opt.sorters.sPlayerName
-   * @param {Number} opt.offset
-   * @param {Number} opt.limit
-   */
-  const get = async function ({ filters, sorters, offset = 0, limit = 100 }) {
-    const statement = `
+	/**
+	 * @param {object} opt
+	 * @param {object} opt.filters
+	 * @param {query.Filter} opt.filters.xidPlayer
+	 * @param {query.Filter} opt.filters.__key
+	 * @param {query.Filter} opt.filters.sPlayerName
+	 * @param {object} opt.sorters
+	 * @param {query.Sorter} opt.sorters.xidPlayer
+	 * @param {query.Sorter} opt.sorters.__key
+	 * @param {query.Sorter} opt.sorters.sPlayerName
+	 * @param {Number} opt.offset
+	 * @param {Number} opt.limit
+	 */
+	const get = async function ({ filters, sorters, offset = 0, limit = 100 }) {
+		const statement = `
             SELECT * 
             FROM Player
             ${fastify.query.getWhereStatement({ filters })}
             ${fastify.query.getOrderStatement({ sorters })} 
 			LIMIT ${offset}, ${limit}`;
 
-    // fastify.log.info(statement);
-    const rows = await fastify.hazelcast.execute({ statement });
+		// fastify.log.info(statement);
+		const rows = await fastify.hazelcast.execute({ statement });
 
-    /** @type {Player[]} */
-    const entries = [];
-    for await (const row of rows) {
-      entries.push(
-        new Player({
-          xidPlayer: row.xidPlayer,
-          __key: row.__key,
-          sPlayerName: row.sPlayerName,
-        }),
-      );
-    }
+		/** @type {Player[]} */
+		const entries = [];
+		for await (const row of rows) {
+			entries.push(
+				new Player({
+					xidPlayer: row.xidPlayer,
+					__key: row.__key,
+					sPlayerName: row.sPlayerName,
+				})
+			);
+		}
 
-    return entries;
-  };
+		return entries;
+	};
 
-  /**
-   * @param {object} opt
-   * @param {String} opt.statement
-   * @param {boolean} opt.toHazelCast - False to prevent writing to Hazelcast
-   * @param {boolean} opt.toSql - False to prevent writing to the SQL database
-   */
-  const write = async function ({
-    statement,
-    toHazelCast = true,
-    toSql = true,
-  }) {
-    if (toHazelCast) {
-      await fastify.hazelcast.execute({
-        statement: statement,
-      });
-    }
+	/**
+	 * @param {object} opt
+	 * @param {String} opt.statement
+	 * @param {boolean} opt.toHazelCast - False to prevent writing to Hazelcast
+	 * @param {boolean} opt.toSql - False to prevent writing to the SQL database
+	 */
+	const write = async function ({ statement, toHazelCast = true, toSql = true }) {
+		if (toHazelCast) {
+			await fastify.hazelcast.execute({
+				statement: statement,
+			});
+		}
 
-    if (toSql) {
-      await fastify.mqtt.publish({
-        queue: "WriteRequest",
-        message: {
-          table: "Player",
-          statement: statement,
-        },
-      });
-    }
-  };
+		if (toSql) {
+			await fastify.mqtt.publish({
+				queue: 'WriteRequest',
+				message: {
+					table: 'Player',
+					statement: statement,
+				},
+			});
+		}
+	};
 
-  fastify.decorate("player", {
-    init,
-    onMappingResponse,
-    onReadResponse,
-    model: Player,
-    create,
-    get,
-    write,
-  });
+	fastify.decorate('player', {
+		init,
+		onMappingResponse,
+		onReadResponse,
+		model: Player,
+		create,
+		get,
+		write,
+	});
 
-  module.exports.init = init;
-  module.exports.onMappingResponse = onMappingResponse;
-  module.exports.onReadResponse = onReadResponse;
-  module.exports.model = Player;
-  module.exports.get = get;
-  module.exports.write = write;
-  module.exports.create = create;
+	module.exports.init = init;
+	module.exports.onMappingResponse = onMappingResponse;
+	module.exports.onReadResponse = onReadResponse;
+	module.exports.model = Player;
+	module.exports.get = get;
+	module.exports.write = write;
+	module.exports.create = create;
 };
 
 module.exports = fp(plugin, {
-  fastify: ">=3.0.0",
-  name: "fastify-player",
+	fastify: '>=3.0.0',
+	name: 'fastify-player',
 });
+

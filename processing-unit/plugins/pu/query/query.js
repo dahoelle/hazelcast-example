@@ -92,17 +92,42 @@ const plugin = async function (fastify, opts) {
 		return statement;
 	};
 
+	/**
+	 * @param {object} opt
+	 * @param {Number} opt.low
+	 * @param {Number} opt.high
+	 * @param {Boolean} opt.unsigned
+	 * @returns
+	 */
+	const bigIntToNumber = function ({ low, high, unsigned = false }) {
+		// Convert to unsigned 32-bit integers first
+		const lowUnsigned = low >>> 0;
+		const highUnsigned = high >>> 0;
+
+		// Combine into a BigInt
+		let result = (BigInt(highUnsigned) << 32n) | BigInt(lowUnsigned);
+
+		// If it's signed and the high bit is set, convert to negative
+		if (!unsigned && highUnsigned & 0x80000000) {
+			result = result - (1n << 64n);
+		}
+
+		return parseInt(result);
+	};
+
 	fastify.decorate('query', {
 		Filter,
 		Sorter,
 		getWhereStatement,
 		getOrderStatement,
+		bigIntToNumber,
 	});
 
 	module.exports.Filter = Filter;
 	module.exports.Sorter = Sorter;
 	module.exports.getWhereStatement = getWhereStatement;
 	module.exports.getOrderStatement = getOrderStatement;
+	module.exports.bigIntToNumber = bigIntToNumber;
 };
 
 module.exports = fp(plugin, {
