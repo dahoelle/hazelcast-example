@@ -47,8 +47,10 @@ const plugin = async function (fastify, opts) {
 			return await createRandomPlayer();
 		}
 
-		// 40% chance to create a new score
-		if (random < 0.6) {
+		// TODO: In config?
+
+		// 60% chance to create a new score
+		if (random < 0.8) {
 			return await createRandomScore();
 		}
 
@@ -66,19 +68,19 @@ const plugin = async function (fastify, opts) {
 		});
 
 		// Create the player
-		const playerResponse = await axios.post('http://middleware:4000/player', { sPlayerName });
+		const playerResponse = await axios.post('http://middleware:4000/model/player', { sPlayerName });
 		const playerData = playerResponse.data.data;
 		const xidPlayer = playerData.xidPlayer;
 
 		// Create the image
 		const image = jdenticon.toPng(xidPlayer, 256);
 		const sContent = 'data:image/png;base64,' + image.toString('base64');
-		const imageResponse = await axios.post('http://middleware:4000/image', { sContent });
+		const imageResponse = await axios.post('http://middleware:4000/model/image', { sContent });
 		const imageData = imageResponse.data.data;
 		const xidImage = imageData.xidImage;
 
 		// Create the join entry
-		await axios.post('http://middleware:4000/playerImage', { xidPlayer, xidImage });
+		await axios.post('http://middleware:4000/model/playerImage', { xidPlayer, xidImage });
 	};
 
 	/**
@@ -97,7 +99,7 @@ const plugin = async function (fastify, opts) {
 			query += `&filters=${JSON.stringify(filters)}`;
 		}
 
-		const playerResponse = await axios.get(`http://middleware:4000/player?${query}`);
+		const playerResponse = await axios.get(`http://middleware:4000/model/player?${query}`);
 		return playerResponse.data.data[0];
 	};
 
@@ -111,12 +113,12 @@ const plugin = async function (fastify, opts) {
 		// Creates a random score from 0 to 10 000
 		const nScore = Math.floor(Math.random() * 10000);
 		const nTimestamp = new Date().valueOf();
-		const scoreResponse = await axios.post('http://middleware:4000/score', { nScore, nTimestamp });
+		const scoreResponse = await axios.post('http://middleware:4000/model/score', { nScore, nTimestamp });
 		const scoreData = scoreResponse.data.data;
 		const xidScore = scoreData.xidScore;
 
 		// Create the join entry
-		await axios.post('http://middleware:4000/playerScore', { xidPlayer, xidScore });
+		await axios.post('http://middleware:4000/model/playerScore', { xidPlayer, xidScore });
 	};
 
 	/**
@@ -142,13 +144,13 @@ const plugin = async function (fastify, opts) {
 		};
 
 		const query = `filters=${JSON.stringify(filters)}`;
-		const friendResponse = await axios.get(`http://middleware:4000/friend?${query}`);
+		const friendResponse = await axios.get(`http://middleware:4000/model/friend?${query}`);
 		if (friendResponse.data.data.length != 0) {
 			return;
 		}
 
 		// Create the join entry
-		await axios.post('http://middleware:4000/friend', { xidPlayerA, xidPlayerB });
+		await axios.post('http://middleware:4000/model/friend', { xidPlayerA, xidPlayerB });
 	};
 
 	//! Die beiden unteren wären auch für Webseite gut geeignet (Also in pu implementieren?)

@@ -5,7 +5,7 @@
  * @param {*} opts
  */
 module.exports = async function (fastify, opts) {
-	fastify.get('/score', async function (request, reply) {
+	fastify.get('/model/score', async function (request, reply) {
 		const query = request.query;
 		const filters = query.filters != null ? JSON.parse(query.filters) : null;
 		const sorters = query.sorters != null ? JSON.parse(query.sorters) : null;
@@ -17,7 +17,7 @@ module.exports = async function (fastify, opts) {
 		return reply;
 	});
 
-	fastify.get('/score/:xidScore', async function (request, reply) {
+	fastify.get('/model/score/:xidScore', async function (request, reply) {
 		const { xidScore } = request.params;
 		const result = await fastify.score.get({
 			filters: {
@@ -29,7 +29,7 @@ module.exports = async function (fastify, opts) {
 		return reply;
 	});
 
-	fastify.post('/score', async function (request, reply) {
+	fastify.post('/model/score', async function (request, reply) {
 		const model = new fastify.score.model(request.body);
 
 		// TODO: Bisher funktionieren nur VarChars

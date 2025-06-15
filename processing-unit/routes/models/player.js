@@ -5,23 +5,23 @@
  * @param {*} opts
  */
 module.exports = async function (fastify, opts) {
-	fastify.get('/friend', async function (request, reply) {
+	fastify.get('/model/player', async function (request, reply) {
 		const query = request.query;
 		const filters = query.filters != null ? JSON.parse(query.filters) : null;
 		const sorters = query.sorters != null ? JSON.parse(query.sorters) : null;
 		const limit = query.limit ?? 100;
 		const offset = query.offset ?? 0;
 
-		const result = await fastify.friend.get({ filters, sorters, offset, limit });
+		const result = await fastify.player.get({ filters, sorters, offset, limit });
 		reply.send({ success: true, data: result });
 		return reply;
 	});
 
-	fastify.get('/friend/:xidFriend', async function (request, reply) {
-		const { xidFriend } = request.params;
-		const result = await fastify.friend.get({
+	fastify.get('/model/player/:xidPlayer', async function (request, reply) {
+		const { xidPlayer } = request.params;
+		const result = await fastify.player.get({
 			filters: {
-				xidFriend: { operator: '=', value: xidFriend },
+				xidPlayer: { operator: '=', value: xidPlayer },
 			},
 		});
 
@@ -29,10 +29,10 @@ module.exports = async function (fastify, opts) {
 		return reply;
 	});
 
-	fastify.post('/friend', async function (request, reply) {
-		const model = new fastify.friend.model(request.body);
+	fastify.post('/model/player', async function (request, reply) {
+		const model = new fastify.player.model(request.body);
 
-		const result = await fastify.friend.create({ model });
+		const result = await fastify.player.create({ model });
 		reply.send({ success: true, data: result });
 		return reply;
 	});

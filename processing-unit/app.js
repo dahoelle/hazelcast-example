@@ -16,6 +16,6 @@ module.exports = async function (fastify, opts) {
 	// Routes
 	fastify.register(require('./routes/index'));
 	fastify.register(require('./routes/dev'));
-	fastify.register(require('./routes/pu'));
+	fastify.register(require('./routes/models'));
 };
 
