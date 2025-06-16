@@ -29,6 +29,17 @@ const plugin = async function (fastify, opts) {
 			/** @type {import('../mysql/mysql').MySqlResponse[]} */
 			const chunks = response.data.slice(i, i + countPerChunk);
 
+			// Convert blob values to strings
+			for (const chunk of chunks) {
+				const keys = Object.keys(chunk);
+				for (const key of keys) {
+					const value = chunk[key];
+					if (Buffer.isBuffer(value)) {
+						chunk[key] = value.toString();
+					}
+				}
+			}
+
 			// Send each chunk using a separate mqtt message
 			fastify.mqtt.publish({
 				queue: 'ReadResponse',

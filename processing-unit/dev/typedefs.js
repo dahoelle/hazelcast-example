@@ -21,6 +21,7 @@
  * @property {import("../plugins/pu/models/playerScore")} playerScore
  * @property {import("../plugins/pu/details/playerDetails")} playerDetails
  * @property {import("../plugins/pu/details/scoreDetails")} scoreDetails
+ * @property {import("../plugins/pu/details/imageDetails")} imageDetails
  * @property {import("../plugins/pu/mqtt")} mqtt
  * @property {import("./../plugins/elasticsearch/elasticsearch")} elasticsearch
  * @property {import("./../plugins/performance/performanceMonitor")} performanceMonitor

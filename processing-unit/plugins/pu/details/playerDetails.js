@@ -23,13 +23,11 @@ const plugin = async function (fastify, opts) {
 
 		const scores = await getScoresOfPlayer({ xidPlayer });
 		const friends = await getFriendsOfPlayer({ xidPlayer });
-		const image = await getImageOfPlayer({ xidPlayer });
 
 		return {
 			player,
 			scores,
 			friends,
-			image,
 		};
 	};
 
@@ -99,27 +97,6 @@ const plugin = async function (fastify, opts) {
 		return await fastify.player.get({
 			filters: {
 				xidPlayer: { operator: 'in', value: `(${friendPlayerFilter.join(', ')})` },
-			},
-		});
-	};
-
-	/**
-	 * @param {Object} opt
-	 * @param {String} opt.xidPlayer
-	 */
-	const getImageOfPlayer = async function ({ xidPlayer }) {
-		const xidPlayerFilter = { operator: '=', value: xidPlayer };
-
-		const playerImage = await fastify.playerImage.get({
-			filters: {
-				xidPlayer: xidPlayerFilter,
-			},
-		});
-
-		const xidImage = playerImage[0].xidImage;
-		return await fastify.image.get({
-			filters: {
-				xidImage: { operator: '=', value: xidImage },
 			},
 		});
 	};
