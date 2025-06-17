@@ -22,6 +22,9 @@
  * @property {import("../plugins/pu/details/playerDetails")} playerDetails
  * @property {import("../plugins/pu/details/scoreDetails")} scoreDetails
  * @property {import("../plugins/pu/details/imageDetails")} imageDetails
+ * @property {import("../plugins/pu/create/createFriend")} createFriend
+ * @property {import("../plugins/pu/create/createPlayer")} createPlayer
+ * @property {import("../plugins/pu/create/createScore")} createScore
  * @property {import("../plugins/pu/mqtt")} mqtt
  * @property {import("./../plugins/elasticsearch/elasticsearch")} elasticsearch
  * @property {import("./../plugins/performance/performanceMonitor")} performanceMonitor
