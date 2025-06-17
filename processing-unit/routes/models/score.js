@@ -32,8 +32,6 @@ module.exports = async function (fastify, opts) {
 	fastify.post('/model/score', async function (request, reply) {
 		const model = new fastify.score.model(request.body);
 
-		// TODO: Bisher funktionieren nur VarChars
-
 		const result = await fastify.score.create({ model });
 		reply.send({ success: true, data: result });
 		return reply;

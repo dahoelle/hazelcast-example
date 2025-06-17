@@ -28,34 +28,42 @@ const plugin = async function (fastify, opts) {
 			now = new Date().valueOf();
 			runDuration = now - start;
 
-			sendRequest();
+			sendCreateRequest();
+			sendReadRequest();
 			await new Promise((resolve) => setTimeout(resolve, interval));
 		} while (runDuration < duration);
 	};
 
-	const sendRequest = async function () {
+	const sendCreateRequest = async function () {
 		index++;
 
 		// Ensure there are some players in the system
-		if (index < 50) {
+		if (index < 25) {
 			return await createRandomPlayer();
 		}
 
-		// 20% chance to create a new player
+		// x chance to create a new player
 		const random = Math.random();
 		if (random < 0.2) {
 			return await createRandomPlayer();
 		}
 
-		// TODO: In config?
-
-		// 60% chance to create a new score
+		// x chance to create a new score
 		if (random < 0.8) {
 			return await createRandomScore();
 		}
 
-		// 40% chance to create a new friend relation
+		// x chance to create a new friend relation
 		return await createRandomFriend();
+	};
+
+	const sendReadRequest = async function () {
+		const random = Math.random();
+		if (random < 0.5) {
+			return await getRandomPlayerData();
+		}
+
+		return await getTopScores();
 	};
 
 	/**
@@ -67,20 +75,17 @@ const plugin = async function (fastify, opts) {
 			length: 2,
 		});
 
-		// Create the player
-		const playerResponse = await axios.post('http://middleware:4000/model/player', { sPlayerName });
-		const playerData = playerResponse.data.data;
-		const xidPlayer = playerData.xidPlayer;
-
-		// Create the image
-		const image = jdenticon.toPng(xidPlayer, 256);
+		const seed = new Date().valueOf();
+		const image = jdenticon.toPng(seed.toString(), 256);
 		const sContent = 'data:image/png;base64,' + image.toString('base64');
-		const imageResponse = await axios.post('http://middleware:4000/model/image', { sContent });
-		const imageData = imageResponse.data.data;
-		const xidImage = imageData.xidImage;
 
-		// Create the join entry
-		await axios.post('http://middleware:4000/model/playerImage', { xidPlayer, xidImage });
+		const data = {
+			player: { sPlayerName },
+			image: { sContent },
+		};
+
+		// Create the player
+		await axios.post('http://middleware:4000/create/player', data);
 	};
 
 	/**
@@ -113,12 +118,12 @@ const plugin = async function (fastify, opts) {
 		// Creates a random score from 0 to 10 000
 		const nScore = Math.floor(Math.random() * 10000);
 		const nTimestamp = new Date().valueOf();
-		const scoreResponse = await axios.post('http://middleware:4000/model/score', { nScore, nTimestamp });
-		const scoreData = scoreResponse.data.data;
-		const xidScore = scoreData.xidScore;
+		const data = {
+			nScore,
+			nTimestamp,
+		};
 
-		// Create the join entry
-		await axios.post('http://middleware:4000/model/playerScore', { xidPlayer, xidScore });
+		await axios.post(`http://middleware:4000/create/score/${xidPlayer}`, data);
 	};
 
 	/**
@@ -136,21 +141,10 @@ const plugin = async function (fastify, opts) {
 		}
 
 		const xidPlayerB = playerBData.xidPlayer;
-
-		// Ensure the players are not already friends
-		const filters = {
-			xidPlayerA: { operator: 'in', value: `('${xidPlayerA}', '${xidPlayerB}')` },
-			xidPlayerB: { operator: 'in', value: `('${xidPlayerA}', '${xidPlayerB}')` },
-		};
-
-		const query = `filters=${JSON.stringify(filters)}`;
-		const friendResponse = await axios.get(`http://middleware:4000/model/friend?${query}`);
-		if (friendResponse.data.data.length != 0) {
-			return;
-		}
+		const data = { xidPlayerA, xidPlayerB };
 
 		// Create the join entry
-		await axios.post('http://middleware:4000/model/friend', { xidPlayerA, xidPlayerB });
+		await axios.post('http://middleware:4000/create/friend', data);
 	};
 
 	const getRandomPlayerData = async function () {
@@ -158,10 +152,8 @@ const plugin = async function (fastify, opts) {
 		await axios.get(`http://middleware:4000/detail/player/${playerData.xidPlayer}`);
 	};
 
-	//! Die beiden unteren wären auch für Webseite gut geeignet (Also in pu implementieren?)
-	
 	const getTopScores = async function () {
-		// TODO: Get highest scores using sorter & limit + pagination
+		await axios.get(`http://middleware:4000/detail/score?sorters={"nScore": {"direction": "DESC"}}&limit=25`);
 	};
 
 	fastify.decorate('simulator', {

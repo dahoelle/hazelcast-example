@@ -30,6 +30,21 @@ const plugin = async function (fastify, opts) {
 	const unresponsiveTimeout = 30000; // Milliseconds
 
 	/**
+	 * @type {'requestsPerSecond' | 'responseTime'}
+	 */
+	const metric = process.env.DEPLOYMENT_METRIC;
+
+	const getMetricPlugin = function () {
+		if (metric == 'responseTime') {
+			return fastify.metricsResponseTime;
+		}
+
+		return fastify.metricRequestsPerSecond;
+	};
+
+	fastify.log.info(`[+] Using ${metric} as deployment metric`);
+
+	/**
 	 * Stores the request count for the ProcessingUnit within the current interval
 	 * @type {Map<String, ProcessingUnitData>}
 	 */
@@ -82,6 +97,7 @@ const plugin = async function (fastify, opts) {
 	const monitorRoutine = async function () {
 		await removeUnresponsivePUs();
 
+		const metricPlugin = getMetricPlugin();
 		const processingUnits = Array.from(performancePerPU.values());
 
 		// Ensures that there is at least one PU. If the last PU has been removed due to
@@ -98,9 +114,7 @@ const plugin = async function (fastify, opts) {
 		}
 
 		// If a PU has more requests per second than the threshold, instantiate a new instance
-		// TODO: Über config regeln
-		// const requiresCreation = await fastify.metricsResponseTime.requiresCreation({ units: processingUnits });
-		const requiresCreation = await fastify.metricRequestsPerSecond.requiresCreation({ units: processingUnits });
+		const requiresCreation = await metricPlugin.requiresCreation({ units: processingUnits });
 		if (requiresCreation) {
 			const lastPU = await fastify.messagingRegister.getLastProcessingUnit();
 			const lastNr = await fastify.deploymentContainer.getPUIndexFromName({ name: lastPU.name });
@@ -117,9 +131,7 @@ const plugin = async function (fastify, opts) {
 		}
 
 		// If no PU is below the decrease threshold, return immediately
-		// TODO: Über config regeln
-		// const requiresDeletion = await fastify.metricsResponseTime.requiresDeletion({ units: processingUnits });
-		const requiresDeletion = await fastify.metricRequestsPerSecond.requiresDeletion({ units: processingUnits });
+		const requiresDeletion = await metricPlugin.requiresDeletion({ units: processingUnits });
 		if (requiresDeletion == false) {
 			return;
 		}

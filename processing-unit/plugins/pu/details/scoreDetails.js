@@ -19,6 +19,9 @@ const plugin = async function (fastify, opts) {
 	 */
 	const getDetailedScores = async function ({ filters, sorters, limit = 100, offset = 0 }) {
 		const scores = await fastify.score.get({ filters, sorters, limit, offset });
+		if (scores.length == 0) {
+			return [];
+		}
 
 		const xidScores = scores.map((score) => `'${score.xidScore}'`);
 		const playersByScore = await getPlayerOfScore({ xidScores });

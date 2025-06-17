@@ -7,6 +7,8 @@ const fp = require('fastify-plugin');
  * @param {*} opts
  */
 const plugin = async function (fastify, opts) {
+	// TODO: Settings in config
+
 	/**
 	 * The requests per second threshold. If any PU has more requests than this threshold
 	 * a new PU is queued to be created.

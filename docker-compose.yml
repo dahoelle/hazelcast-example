@@ -38,6 +38,7 @@ services:
       - PUBLIC_IP=217.154.206.223
       - MIDDLEWARE_NAME=middleware # Container name to pass to the instantiated PUs
       - MIDDLEWARE_PORT=4000 # Container port to pass to the instantiated PUs (internal docker port, not the exposed port)
+      - DEPLOYMENT_METRIC=responseTime
     networks:
       - hazelcast_network
 
