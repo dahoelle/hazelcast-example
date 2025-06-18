@@ -24,20 +24,31 @@ const plugin = async function (fastify, opts) {
 		}
 	}
 
-	/**
-	 * @type {'requestsPerSecond' | 'responseTime'}
-	 */
-	const metric = process.env.DEPLOYMENT_METRIC;
+	// Used to detect changes in the active metric
+	let previousMetric = null;
 
+	/**
+	 * Gets the metric plugin by checking the current settings & returning the correct plugin instance
+	 * @returns
+	 */
 	const getMetricPlugin = function () {
+		const settings = fastify.deploymentSettings.getSettings();
+		const metric = settings.activeMetric;
+
+		// Log metric changes in the console
+		if (metric != previousMetric) {
+			fastify.log.info(`[+] Using ${metric} as deployment metric`);
+		}
+
+		previousMetric = metric;
+
+		// Determine the corrent plugin
 		if (metric == 'responseTime') {
 			return fastify.metricsResponseTime;
 		}
 
 		return fastify.metricRequestsPerSecond;
 	};
-
-	fastify.log.info(`[+] Using ${metric} as deployment metric`);
 
 	/**
 	 * Stores the request count for the ProcessingUnit within the current interval
@@ -189,9 +200,11 @@ const plugin = async function (fastify, opts) {
 		// Wait a few seconds before starting the routine
 		await new Promise((resolve) => setTimeout(resolve, 3000));
 
-		const settings = fastify.deploymentSettings.getSettings();
-
 		while (true) {
+			// Periodically load the settings to allow changing without container restart
+			await fastify.deploymentSettings.loadSettings();
+			const settings = fastify.deploymentSettings.getSettings();
+
 			await monitorRoutine();
 			await new Promise((resolve) => setTimeout(resolve, settings.routineDelay));
 		}

@@ -31,14 +31,16 @@ const plugin = async function (fastify, opts) {
 		 * @param {Number} opt.actionCooldown
 		 * @param {Number} opt.unresponsiveTimeout
 		 * @param {Object} opt.metrics
+		 * @param {String} opt.activeMetric
 		 * @param {MetricSettings} opt.metrics.responseTime
 		 * @param {MetricSettings} opt.metrics.requestsPerSecond
 		 */
-		constructor({ routineDelay, minPUUptime, actionCooldown, unresponsiveTimeout, metrics }) {
+		constructor({ routineDelay, minPUUptime, actionCooldown, unresponsiveTimeout, metrics, activeMetric }) {
 			this.routineDelay = routineDelay;
 			this.minPUUptime = minPUUptime;
 			this.actionCooldown = actionCooldown;
 			this.unresponsiveTimeout = unresponsiveTimeout;
+			this.activeMetric = activeMetric;
 			this.metrics = metrics;
 		}
 	}
@@ -60,10 +62,12 @@ const plugin = async function (fastify, opts) {
 	if (fastify.deploymentSettings == null) {
 		fastify.decorate('deploymentSettings', {
 			getSettings,
+			loadSettings,
 		});
 	}
 
 	module.exports.getSettings = getSettings;
+	module.exports.loadSettings = loadSettings;
 };
 
 module.exports = fp(plugin, {
