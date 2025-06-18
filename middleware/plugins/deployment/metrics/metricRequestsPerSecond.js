@@ -8,28 +8,19 @@ const fp = require('fastify-plugin');
  */
 const plugin = async function (fastify, opts) {
 	/**
-	 * The requests per second threshold. If any PU has more requests than this threshold
-	 * a new PU is queued to be created.
-	 */
-	const increaseThreshold = 0.8;
-
-	/**
-	 * The requests per second threshold. If any PU has fewer requests than this threshold
-	 * the last PU is queued to be deleted.
-	 */
-	const decreaseThreshold = 0.2;
-
-	/**
 	 * @param {Object} opt
 	 * @param {import ('./../deploymentMonitor').ProcessingUnitData[]} opt.units
 	 * @returns
 	 */
 	const requiresCreation = function ({ units }) {
+		const settings = fastify.deploymentSettings.getSettings();
+		const metricSettings = settings.metrics['requestsPerSecond'];
+
 		for (const unit of units) {
 			fastify.log.info(`[+] PU ${unit.name} has ${unit.requestsPerSecond} requests per second`);
 		}
 
-		const aboveIncrease = units.find((data) => data.requestsPerSecond >= increaseThreshold);
+		const aboveIncrease = units.find((data) => data.requestsPerSecond >= metricSettings.increaseThreshold);
 		return aboveIncrease != null;
 	};
 
@@ -39,7 +30,10 @@ const plugin = async function (fastify, opts) {
 	 * @returns
 	 */
 	const requiresDeletion = function ({ units }) {
-		const belowDecrease = units.find((data) => data.requestsPerSecond <= decreaseThreshold);
+		const settings = fastify.deploymentSettings.getSettings();
+		const metricSettings = settings.metrics['requestsPerSecond'];
+
+		const belowDecrease = units.find((data) => data.requestsPerSecond <= metricSettings.decreaseThreshold);
 		return belowDecrease != null;
 	};
 

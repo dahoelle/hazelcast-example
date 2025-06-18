@@ -27,6 +27,7 @@ services:
     pid: "host" # Give access to system data in /proc
     volumes:
       - ./middleware:/usr/src/app
+      - ./volumes/config/middleware:/usr/src/config
       - ./hazelcast.yaml:/hazelcast.yaml # Hazelcast config is copied into new docker containers
       - /var/run/docker.sock:/var/run/docker.sock # Allows dockerode to access the Docker daemon
     command: node /usr/src/app/server.js

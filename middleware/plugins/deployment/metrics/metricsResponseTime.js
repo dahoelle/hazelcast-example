@@ -7,31 +7,20 @@ const fp = require('fastify-plugin');
  * @param {*} opts
  */
 const plugin = async function (fastify, opts) {
-	// TODO: Settings in config
-
-	/**
-	 * The requests per second threshold. If any PU has more requests than this threshold
-	 * a new PU is queued to be created.
-	 */
-	const increaseThreshold = 100;
-
-	/**
-	 * The requests per second threshold. If any PU has fewer requests than this threshold
-	 * the last PU is queued to be deleted.
-	 */
-	const decreaseThreshold = 50;
-
 	/**
 	 * @param {Object} opt
 	 * @param {import ('../deploymentMonitor').ProcessingUnitData[]} opt.units
 	 * @returns
 	 */
 	const requiresCreation = function ({ units }) {
+		const settings = fastify.deploymentSettings.getSettings();
+		const metricSettings = settings.metrics['responseTime'];
+
 		for (const unit of units) {
 			fastify.log.info(`[+] PU ${unit.name} has ${unit.averageResponseTime} average response time`);
 		}
 
-		const aboveIncrease = units.find((data) => data.averageResponseTime >= increaseThreshold);
+		const aboveIncrease = units.find((data) => data.averageResponseTime >= metricSettings.increaseThreshold);
 		return aboveIncrease != null;
 	};
 
@@ -41,7 +30,10 @@ const plugin = async function (fastify, opts) {
 	 * @returns
 	 */
 	const requiresDeletion = function ({ units }) {
-		const belowDecrease = units.find((data) => data.averageResponseTime <= decreaseThreshold);
+		const settings = fastify.deploymentSettings.getSettings();
+		const metricSettings = settings.metrics['responseTime'];
+
+		const belowDecrease = units.find((data) => data.averageResponseTime <= metricSettings.decreaseThreshold);
 		return belowDecrease != null;
 	};
 

@@ -1,0 +1,30 @@
+{
+  //! All times are given in milliseconds
+
+  // Time between routine executions
+  "routineDelay": 5000,
+
+  // Min time a PU has to be active before shutting down again
+  "minPUUptime": 20000,
+
+  // Min time between adding / removing PUs
+  "actionCooldown": 20000,
+
+  // Time to remove a PU if there are no performance metrics
+  "unresponsiveTimeout": 20000,
+
+  // Performance metrics to determine when a new PU is created or deleted
+  "metrics": {
+    // Average response time in milliseconds
+    "responseTime": {
+      "increaseThreshold": 100,
+      "decreaseThreshold": 50
+    },
+
+    // Average requests per second
+    "requestsPerSecond": {
+      "increaseThreshold": 0.8,
+      "decreaseThreshold": 0.2
+    }
+  }
+}

@@ -24,11 +24,6 @@ const plugin = async function (fastify, opts) {
 		}
 	}
 
-	const routineDelayMs = 5000;
-	const minPUUptime = 20; // Seconds
-	const actionCooldown = 20000; // Milliseconds
-	const unresponsiveTimeout = 30000; // Milliseconds
-
 	/**
 	 * @type {'requestsPerSecond' | 'responseTime'}
 	 */
@@ -91,12 +86,14 @@ const plugin = async function (fastify, opts) {
 	};
 
 	const waitForNextAction = async function () {
-		await new Promise((resolve) => setTimeout(resolve, actionCooldown));
+		const settings = fastify.deploymentSettings.getSettings();
+		await new Promise((resolve) => setTimeout(resolve, settings.actionCooldown));
 	};
 
 	const monitorRoutine = async function () {
 		await removeUnresponsivePUs();
 
+		const settings = fastify.deploymentSettings.getSettings();
 		const metricPlugin = getMetricPlugin();
 		const processingUnits = Array.from(performancePerPU.values());
 
@@ -138,7 +135,7 @@ const plugin = async function (fastify, opts) {
 
 		// If the newest PU is within the uptime limit, return immediately
 		const leastUptime = processingUnits.sort((a, b) => a.uptime - b.uptime);
-		if (leastUptime[0].uptime < minPUUptime) {
+		if (leastUptime[0].uptime < settings.minPUUptime / 1000) {
 			return;
 		}
 
@@ -164,11 +161,12 @@ const plugin = async function (fastify, opts) {
 	const removeUnresponsivePUs = async function () {
 		const processingUnits = Array.from(performancePerPU.values());
 		const now = new Date().valueOf();
+		const settings = fastify.deploymentSettings.getSettings();
 
 		// Determine the PUs that have not been sending performance updates
 		const unresponsive = processingUnits.filter((data) => {
 			const timeSinceResponse = now - data.timestamp;
-			return timeSinceResponse > unresponsiveTimeout;
+			return timeSinceResponse > settings.unresponsiveTimeout;
 		});
 
 		// Remove the PUs from the messaging-grid
@@ -188,9 +186,14 @@ const plugin = async function (fastify, opts) {
 	 * duplicate creation of PUs if the docker containers require some time to start
 	 */
 	const startMonitorRoutine = async function () {
+		// Wait a few seconds before starting the routine
+		await new Promise((resolve) => setTimeout(resolve, 3000));
+
+		const settings = fastify.deploymentSettings.getSettings();
+
 		while (true) {
 			await monitorRoutine();
-			await new Promise((resolve) => setTimeout(resolve, routineDelayMs));
+			await new Promise((resolve) => setTimeout(resolve, settings.routineDelay));
 		}
 	};
 
