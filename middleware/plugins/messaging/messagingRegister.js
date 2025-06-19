@@ -53,8 +53,6 @@ const plugin = async function (fastify, opts) {
 		const index = processingUnits.findIndex((data) => data.name == name);
 		processingUnits.splice(index, 1);
 
-		// TODO: Sollte der monitor auf das Abschalten warten?
-
 		// Wait x times the average response time of the PU to ensure that all requests have been fulfilled
 		const performance = fastify.deploymentMonitor.performancePerPU.get(name);
 		if (performance != null) {
