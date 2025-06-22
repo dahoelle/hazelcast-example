@@ -6,8 +6,8 @@
  */
 module.exports = async function (fastify, opts) {
 	fastify.post('/simulate', async function (request, reply) {
-		const { duration, interval } = request.body;
-		const result = await fastify.simulator.simulateLoad({ duration, interval });
+		const { duration, interval, minScore } = request.body;
+		const result = await fastify.simulator.simulateLoad({ duration, interval, minScore });
 		reply.send({ success: true, data: result });
 		return reply;
 	});

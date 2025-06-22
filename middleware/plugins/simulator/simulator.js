@@ -1,9 +1,12 @@
 'use strict';
 
 const fp = require('fastify-plugin');
-const jdenticon = require('jdenticon');
 const axios = require('axios').default;
 const { uniqueNamesGenerator, adjectives, animals } = require('unique-names-generator');
+
+const crypto = require('crypto');
+const minidenticon = require('minidenticons');
+const sharp = require('sharp');
 
 /**
  * @param {Fastify} fastify
@@ -16,8 +19,9 @@ const plugin = async function (fastify, opts) {
 	 * @param {object} opt
 	 * @param {Number} opt.interval - The time between simulated requests in milliseconds
 	 * @param {Number} opt.duration - The duration time of the simulation in milliseconds
+	 * @param {Number} opt.minScore - The min score
 	 */
-	const simulateLoad = async function ({ interval, duration }) {
+	const simulateLoad = async function ({ interval, duration, minScore }) {
 		index = 0;
 
 		const start = new Date().valueOf();
@@ -28,13 +32,17 @@ const plugin = async function (fastify, opts) {
 			now = new Date().valueOf();
 			runDuration = now - start;
 
-			sendCreateRequest();
+			sendCreateRequest({ minScore });
 			sendReadRequest();
 			await new Promise((resolve) => setTimeout(resolve, interval));
 		} while (runDuration < duration);
 	};
 
-	const sendCreateRequest = async function () {
+	/**
+	 * @param {object} opt
+	 * @param {Number} opt.minScore - The min score
+	 */
+	const sendCreateRequest = async function ({ minScore }) {
 		index++;
 
 		// Ensure there are some players in the system
@@ -50,7 +58,7 @@ const plugin = async function (fastify, opts) {
 
 		// x chance to create a new score
 		if (random < 0.8) {
-			return await createRandomScore();
+			return await createRandomScore({ minScore });
 		}
 
 		// x chance to create a new friend relation
@@ -75,8 +83,13 @@ const plugin = async function (fastify, opts) {
 			length: 2,
 		});
 
-		const seed = new Date().valueOf();
-		const image = jdenticon.toPng(seed.toString(), 256);
+		// Generate image using minidenticon
+		const timestamp = new Date().valueOf().toString();
+		const seed = crypto.createHash('md5').update(timestamp).digest('hex');
+		const svg = minidenticon.minidenticon(seed);
+
+		// Svg to png
+		const image = await sharp(Buffer.from(svg)).resize(256, 256).png().toBuffer();
 		const sContent = 'data:image/png;base64,' + image.toString('base64');
 
 		const data = {
@@ -110,13 +123,15 @@ const plugin = async function (fastify, opts) {
 
 	/**
 	 * Creates a random score and joins it to a random player
+	 * @param {object} opt
+	 * @param {Number} opt.minScore - The min score
 	 */
-	const createRandomScore = async function () {
+	const createRandomScore = async function ({ minScore = 0 }) {
 		const playerData = await getRandomPlayer({});
 		const xidPlayer = playerData.xidPlayer;
 
 		// Creates a random score from 0 to 10 000
-		const nScore = Math.floor(Math.random() * 10000);
+		const nScore = Math.floor(Math.random() * 10000) + minScore;
 		const nTimestamp = new Date().valueOf();
 		const data = {
 			nScore,
