@@ -148,6 +148,8 @@ const plugin = async function (fastify, opts) {
 				// Pass middleware config to the PUs
 				`MIDDLEWARE_NAME=${process.env.MIDDLEWARE_NAME}`,
 				`MIDDLEWARE_PORT=${process.env.MIDDLEWARE_PORT}`,
+				`RABBITMQ_PASSWORD=${process.env.RABBITMQ_PASSWORD}`,
+				`RABBITMQ_NAME=${process.env.RABBITMQ_NAME}`,
 			],
 			Cmd: ['node', '/usr/src/app/server.js'],
 			HostConfig: {

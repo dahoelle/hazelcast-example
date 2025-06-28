@@ -10,7 +10,7 @@ module.exports = fp(async function (fastify, opts) {
 	 * @param {Object} opt.data
 	 */
 	const post = async function ({ index, data }) {
-		const url = `http://217.154.206.223:9200/${index}/_doc`;
+		const url = `http://elasticsearch:9200/${index}/_doc`;
 		data['@timestamp'] = new Date();
 
 		try {

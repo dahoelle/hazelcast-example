@@ -15,7 +15,7 @@ services:
       - 8080:8080
     environment:
       - MC_DEFAULT_CLUSTER=dev
-      - MC_DEFAULT_CLUSTER_MEMBERS=217.154.206.223:4001
+      - MC_DEFAULT_CLUSTER_MEMBERS=${NETWORK_IP}:4001
     networks:
       - hazelcast_network
 
@@ -28,7 +28,7 @@ services:
     volumes:
       - ./middleware:/usr/src/app
       - ./volumes/config/middleware:/usr/src/config
-      - ./hazelcast.yaml:/hazelcast.yaml # Hazelcast config is copied into new docker containers
+      - ./hazelcast.yaml:/hazelcast.yaml # Hazelcast config is copied into new hazelcast clusters
       - /var/run/docker.sock:/var/run/docker.sock # Allows dockerode to access the Docker daemon
     command: node /usr/src/app/server.js
     ports:
@@ -36,14 +36,20 @@ services:
     environment:
       - HZ_PORT_START=4100 # Defines the port range of the cluster. Cluster #n has port 4100 + n
       - PU_PORT_START=3100 # Defines the port range of the PU. PU #n has port           3100 + n
-      - PUBLIC_IP=217.154.206.223
-      - MIDDLEWARE_NAME=middleware # Container name to pass to the instantiated PUs
-      - MIDDLEWARE_PORT=4000 # Container port to pass to the instantiated PUs (internal docker port, not the exposed port)
-      - DEPLOYMENT_METRIC=requestsPerSecond
+      - PUBLIC_IP=${NETWORK_IP}
+
+      # Variables passed to newly created PUs
+      - MIDDLEWARE_NAME=middleware
+      - MIDDLEWARE_PORT=4000 # Internal docker port, not the exposed port
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - RABBITMQ_NAME=${RABBITMQ_NAME}
     networks:
       - hazelcast_network
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
-  #
+  # The space-based Data-Reader/Writer
   data-rw:
     container_name: data-rw
     image: node:lts-alpine
@@ -51,10 +57,18 @@ services:
     volumes:
       - ./data-rw:/usr/src/app
     command: node /usr/src/app/server.js
+    environment:
+      - MYSQL_NAME=${MYSQL_NAME}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - RABBITMQ_NAME=${RABBITMQ_NAME}
     networks:
       - hazelcast_network
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
-  # The space-based data-pump
+  # The space-based Data-Pump
   rabbitmq:
     container_name: rabbitmq
     image: rabbitmq:3-management
@@ -63,13 +77,18 @@ services:
       - 5672:5672
       - 15672:15672
     environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: +4rQ29=PE53g-@:@XL1
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_NAME}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
     volumes:
       - ./volumes/data/rabbitmq/lib:/var/lib/rabbitmq/
       - ./volumes/data/rabbitmq/log:/var/log/rabbitmq
     networks:
       - hazelcast_network
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 1s
+      timeout: 3s
+      retries: 30
 
   # The space-based database
   mariadb:
@@ -78,9 +97,9 @@ services:
     command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW --log-bin
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: +4rQ29=PE53g-@:@XL1
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: +4rQ29=PE53g-@:@XL1
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_USER: ${MYSQL_NAME}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: space-based
       MARIADB_AUTO_UPGRADE: 1
     ports:
@@ -91,7 +110,7 @@ services:
     networks:
       - hazelcast_network
 
-  #
+  # Grafana dashboards
   grafana:
     container_name: grafana
     image: grafana/grafana
@@ -104,7 +123,7 @@ services:
       - hazelcast_network
     user: "0"
 
-  #
+  # Elasticsearch Big-Data
   elasticsearch:
     container_name: elasticsearch
     image: elasticsearch:7.17.10
@@ -127,6 +146,7 @@ services:
       - hazelcast_network
     user: "0"
 
+  # Nginx Webserver
   nginx:
     image: nginx:latest
     ports:

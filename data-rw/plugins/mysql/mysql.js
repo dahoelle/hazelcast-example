@@ -17,9 +17,9 @@ const mysql = require('mysql');
 const plugin = async function (fastify, opts) {
 	const getConnection = function () {
 		const connection = mysql.createConnection({
-			host: '217.154.206.223',
-			user: 'admin',
-			password: '+4rQ29=PE53g-@:@XL1',
+			host: 'mariadb',
+			user: process.env.MYSQL_NAME,
+			password: process.env.MYSQL_PASSWORD,
 			database: 'space-based',
 		});
 
