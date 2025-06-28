@@ -112,14 +112,41 @@ Folgender Verlauf wird verwendet um die Diagramme zu zeigen:
 
 ## 3.1 Requirements
 
-1. Linux OS
-2. Docker
-3. Docker Compose
-4. Node
-5. NPM
+1. Linux OS (Zugriff auf /var/run/docker.sock)
+2. Docker (Getestet mit 28.0.4)
+3. Docker Compose (Getestet mit 2.3.3)
+4. Node (Getestet mit 23.11.0)
+5. NPM (Getestet mit 10.9.2)
 
 ## 3.2 Installationsschritte
 
 Um das System auf einem lokalen Rechner zu starten werden folgende Schritte durchgeführt:
 
-1.
+1. Die folgenden Ordner und Dateien in eine Linux-Umgebung kopieren
+   - `data-rw`
+   - `middleware`
+   - `processing-unit`
+   - `volumes`
+   - `.env`
+   - `docker-compose.yml`
+   - `hazelcast.yaml`
+2. Die NodeJs Projekte initialisieren. Dafür `npm install` in folgenden Ordner ausführen:
+   - `data-rw`
+   - `middleware`
+   - `processing-unit`
+3. Über `docker pull hazelcast/hazelcast:latest` das Hazelcast Image herunterladen
+   - Ist nötig, da die Docker Compose Datei kein Container mit diesem Image beinhaltet
+4. Die Einstellungen der `.env` Datei anpassen
+   - Die `NETWORK_IP` auf die eigene IP abändern
+   - Den Pfad `PROCESSING_UNIT_VOLUME` anpassen, sodass der `processing-unit` Ordner referenziert wird. Dabei den absoluten Pfad angeben
+5. Die Docker Container über `docker compose up -d` starten
+   - Sicherstellen, dass dieser Befehl in dem Ordner mit der `docker-compose.yml` ausgeführt wird
+   - Dieser Befehl könnte einige Minuten dauern
+   - Die Container `middleware` und `data-rw` warten bis `rabbitmq` erreichbar ist
+6. Unter folgenden Ports sind die Anwendungen bereitgestellt
+   - `80`: Webfrontend
+   - `3000`: Middleware
+     - Über `:3000/simulate?duration=60000&interval=500&minScore=1` wird eine 1 minütige Simulation gestartet
+   - `8080`: Hazelcast-Management-Center
+
+# TODO: Webfrontend URL muss angepasst werden

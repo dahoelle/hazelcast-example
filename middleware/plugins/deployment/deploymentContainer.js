@@ -153,7 +153,7 @@ const plugin = async function (fastify, opts) {
 			],
 			Cmd: ['node', '/usr/src/app/server.js'],
 			HostConfig: {
-				Binds: [`/root/space-based/processing-unit:/usr/src/app`],
+				Binds: [`${process.env.PROCESSING_UNIT_VOLUME}:/usr/src/app`],
 				NetworkMode: 'hazelcast_network',
 				PortBindings: {
 					'4000/tcp': [

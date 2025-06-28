@@ -43,6 +43,7 @@ services:
       - MIDDLEWARE_PORT=4000 # Internal docker port, not the exposed port
       - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
       - RABBITMQ_NAME=${RABBITMQ_NAME}
+      - PROCESSING_UNIT_VOLUME=${PROCESSING_UNIT_VOLUME}
     networks:
       - hazelcast_network
     depends_on:
@@ -105,8 +106,8 @@ services:
     ports:
       - 3306:3306
     volumes:
-      - ./volumes/config/mariadb:/etc/mysql/
       - ./volumes/data/mariadb:/var/lib/mysql
+      - ./volumes/config/mariadb:/docker-entrypoint-initdb.d
     networks:
       - hazelcast_network
 
