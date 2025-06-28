@@ -37,8 +37,8 @@ temp/
 /target/
 /target-eclipse/
 
-# .env
-.envrc
+.env
+# .envrc
 local.properties
 
 # *.class
