@@ -28,12 +28,12 @@ Der Code befindet sich im Ordner [processing-unit](./processing-unit/). Das Fast
 
 Im Unterordner [routes](./processing-unit/routes) werden die verschiedenen Endpunkte implementiert.
 
-| Unterordner | Beinhaltet                                                                                                                                                                               |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| models      | Read & Write Endpunkt für jede Tabelle                                                                                                                                                   |
-| create      | Endpunkte zum Erstellen von Spielern & Scores. Die Endpunkte legen jeweils auch die nötigen Join-Einträge an                                                                             |
-| details     | Endpunkte zum Abfragen der Spieler und Scores, welche nicht über direkt über die `models` ablaufen. Als Beispiel das Abfragen von Spielern mit deren Scores und Bildern in einer Anfrage |
-| dev         | Endpunkte für die Entwicklung um Typedefs und Plugins automatisch zu generieren                                                                                                          |
+| Unterordner | Beinhaltet                                                                                                                                                                          |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| models      | Read & Write Endpunkt für jede Tabelle                                                                                                                                              |
+| create      | Endpunkte zum Erstellen von Spielern & Scores. Die Endpunkte legen jeweils auch die nötigen Join-Einträge an                                                                        |
+| details     | Endpunkte zum Abfragen der Spieler und Scores, welche nicht direkt über die `models` ablaufen. Als Beispiel das Abfragen von Spielern mit deren Scores und Bildern in einer Anfrage |
+| dev         | Endpunkte für die Entwicklung um Typedefs und Plugins automatisch zu generieren                                                                                                     |
 
 ### Plugins
 
@@ -57,7 +57,7 @@ Im Unterordner [routes](./middleware/routes/) werden die verschiedenen Endpunkte
 | Unterordner | Beinhaltet                                                                                                                                                                                                                                  |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | deployment  | Endpunkte um das Hinzufügen einer Processing-Unit zu testen                                                                                                                                                                                 |
-| messaging   | Endpunkte mit welchen sich die Processing-unit bei der Middleware registrieren kann. beinhaltet auch jeden Endpunkt der Processing-Unit im Unterordner `pu`. Die `pu` Endpunkte leiten die Anfragen an die jeweilige Processing-Unit weiter |
+| messaging   | Endpunkte mit welchen sich die Processing-Unit bei der Middleware registrieren kann. beinhaltet auch jeden Endpunkt der Processing-Unit im Unterordner `pu`. Die `pu` Endpunkte leiten die Anfragen an die jeweilige Processing-Unit weiter |
 | simulator   | Endpunkt um eine Simulation zu starten                                                                                                                                                                                                      |
 | dev         | Endpunkte für die Entwicklung um Typedefs zu generieren                                                                                                                                                                                     |
 
@@ -65,14 +65,14 @@ Im Unterordner [routes](./middleware/routes/) werden die verschiedenen Endpunkte
 
 In dem Unterordner [plugins](./middleware/plugins/) befinden sich die verschiedenen NodeJs Logik Implementierungen
 
-| Unterordner   | Beinhaltet                                                                                                             |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| deployment    | Logik um Processing-Units zu erzeugen und abzuschalten. Die Implementierung der verschiedenen Performance Grenzwerten. |
-| elasticsearch | Senden von Daten an die Elasticsearch Instanz                                                                          |
-| messaging     | Das Registrieren und Entfernen von Processing-Units für das Messaging-Grid                                             |
-| performance   | Bestimmung der Performance-Metriken des gesamten Host-Systems                                                          |
-| simulator     | Das Simulieren von konstanten Lasten durch Erstellung von Spielern & Scores                                            |
-| dev           | Implementation der Datei-Generatoren                                                                                   |
+| Unterordner   | Beinhaltet                                                                                                            |
+| ------------- | --------------------------------------------------------------------------------------------------------------------- |
+| deployment    | Logik um Processing-Units zu erzeugen und abzuschalten. Die Implementierung der verschiedenen Performance Grenzwerte. |
+| elasticsearch | Senden von Daten an die Elasticsearch Instanz                                                                         |
+| messaging     | Das Registrieren und Entfernen von Processing-Units für das Messaging-Grid                                            |
+| performance   | Bestimmung der Performance-Metriken des gesamten Host-Systems                                                         |
+| simulator     | Das Simulieren von konstanten Lasten durch Erstellung von Spielern & Scores                                           |
+| dev           | Implementation der Datei-Generatoren                                                                                  |
 
 ### Volumes
 
