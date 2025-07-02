@@ -15,8 +15,26 @@ const plugin = async function (fastify, opts) {
 	 */
 	const onRequest = async function ({ message }) {
 		// Read & execute the SQL statement of the message
-		const data = JSON.parse(message.content.toString());
-		await fastify.mysql.execute({ statement: data.statement });
+		try {
+			const data = JSON.parse(message.content.toString());
+			await fastify.mysql.execute({ statement: data.statement });
+
+			fastify.mqtt.publish({
+				queue: 'WriteResponse',
+				message: {
+					success: true,
+					processingUnit: data.processingUnit,
+				},
+			});
+		} catch (error) {
+			fastify.mqtt.publish({
+				queue: 'WriteResponse',
+				message: {
+					success: false,
+					processingUnit: data.processingUnit,
+				},
+			});
+		}
 	};
 
 	// Register the plugin

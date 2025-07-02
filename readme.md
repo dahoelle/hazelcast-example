@@ -74,6 +74,10 @@ In dem Unterordner `plugins` befinden sich die verschiedenen NodeJs Logik Implem
 | simulator     | Das Simulieren von konstanten Lasten durch Erstellung von Spielern & Scores                                            |
 | dev           | Implementation der Datei-Generatoren                                                                                   |
 
+### Volumes
+
+Über die Datei `./volumes/config/middleware/deployment.jsonc` kann die verwendete Deployment-Metrik und deren Grenzen festgelegt werden
+
 ## 1.4 Data-Reader/Writer
 
 Dieses Fastify-Backend beinhaltet lediglich den Bereich `plugins` da die Kommunikation über MQTT geregelt wird.

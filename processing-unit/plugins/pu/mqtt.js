@@ -30,6 +30,7 @@ const plugin = async function (fastify, opts) {
 		channel = await connection.createChannel();
 
 		await channel.assertQueue('ReadResponse');
+		await channel.assertQueue('WriteResponse');
 		await channel.assertQueue('MappingResponse');
 
 		channel.consume('ReadResponse', async (message) => {
@@ -41,6 +42,11 @@ const plugin = async function (fastify, opts) {
 			// Read & execute the SQL statement of the message
 			const data = JSON.parse(message.content.toString());
 			if (data.processingUnit != process.env.PU_NAME) {
+				return;
+			}
+
+			if (data.success == false) {
+				fastify.log.info(`[-] Error reading data using a Read Request`);
 				return;
 			}
 
@@ -64,12 +70,38 @@ const plugin = async function (fastify, opts) {
 				return;
 			}
 
+			if (data.success == false) {
+				fastify.log.info(`[-] Error reading the mapping using a Mapping Request`);
+				return;
+			}
+
 			/** @type {String} */
 			const table = data.table;
 
 			//! The fastify plugin names must equal the database table names, but start with a lowercase letter
 			const pluginName = table.substring(0, 1).toLowerCase() + table.substring(1);
 			fastify[pluginName].onMappingResponse({ data: data.data });
+		});
+
+		channel.consume('WriteResponse', async (message) => {
+			const success = validateMessage({ message, channel, title: 'WriteResponse' });
+			if (!success) {
+				return;
+			}
+
+			// Read & execute the SQL statement of the message
+			const data = JSON.parse(message.content.toString());
+			if (data.processingUnit != process.env.PU_NAME) {
+				return;
+			}
+
+			if (data.success) {
+				fastify.log.info(`[+] Write request has been successfully persisted`);
+			}
+			else {
+				fastify.log.info(`[-] Error persisting the write request`);
+			}
+
 		});
 	};
 

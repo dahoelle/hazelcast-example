@@ -17,7 +17,6 @@ const plugin = async function (fastify, opts) {
 		// Read & execute the SQL statement of the message
 		const data = JSON.parse(message.content.toString());
 
-		//
 		const statement = `
 			SELECT COLUMN_NAME, DATA_TYPE
 			FROM  information_schema.\`COLUMNS\`
@@ -48,10 +47,10 @@ const plugin = async function (fastify, opts) {
                     'valueFormat' = 'json-flat'
                 )`;
 
-		//
 		fastify.mqtt.publish({
 			queue: 'MappingResponse',
 			message: {
+				success: true,
 				table: data.table,
 				data: mappingStatement,
 				processingUnit: data.processingUnit,

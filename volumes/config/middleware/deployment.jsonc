@@ -14,7 +14,7 @@
   "unresponsiveTimeout": 20000,
 
   // Performance metrics to determine when a new PU is created or deleted
-  "activeMetric": "requestsPerSecond",
+  "activeMetric": "requestsPerSecond", // requestsPerSecond or responseTime
   "metrics": {
     // Average response time in milliseconds
     "responseTime": {

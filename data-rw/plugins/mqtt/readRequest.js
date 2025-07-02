@@ -19,7 +19,14 @@ const plugin = async function (fastify, opts) {
 		const response = await fastify.mysql.execute({ statement: data.statement });
 
 		if (response.success == false) {
-			// TODO: Error
+			fastify.mqtt.publish({
+				queue: 'ReadResponse',
+				message: {
+					success: false,
+					table: data.table,
+					processingUnit: data.processingUnit,
+				},
+			});
 			return;
 		}
 
@@ -44,6 +51,7 @@ const plugin = async function (fastify, opts) {
 			fastify.mqtt.publish({
 				queue: 'ReadResponse',
 				message: {
+					success: true,
 					table: data.table,
 					data: chunks,
 					processingUnit: data.processingUnit,
