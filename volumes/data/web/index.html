@@ -1,538 +1,839 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Top Scores</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    html,
-    body {
-      height: 100%;
-      background-color: #f5f7fa;
-      color: #333;
-      line-height: 1.6;
-    }
-
-    .split-screen {
-      display: flex;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    .half {
-      width: 50%;
-      overflow-y: auto;
-      padding: 20px;
-
-    }
-
-    .user-icon {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background-color: #ccc;
-      color: white;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .locked-form {
-      opacity: 0.5;
-      pointer-events: none;
-      border: 2px dashed #aaa;
-      padding: 20px;
-    }
-
-    .popup-modal {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 9999;
-      background: white;
-      padding: 20px;
-      border: 1px solid #333;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    }
-
-    .popup-modal.active {
-      display: block;
-    }
-
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      margin-top: 45px;
-    }
-
-    header {
-      background: linear-gradient(to right, #4a69bd, #6a89cc);
-      color: white;
-      padding: 25px;
-      text-align: center;
-    }
-
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 5px;
-    }
-
-    .subtitle {
-      opacity: 0.9;
-      font-size: 1.1rem;
-    }
-
-    .scores-container {
-      padding: 20px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 20px 0;
-    }
-
-    th {
-      background-color: #f1f2f6;
-      padding: 15px;
-      text-align: left;
-      font-weight: 600;
-      border-bottom: 2px solid #ddd;
-    }
-
-    td {
-      padding: 14px 15px;
-      border-bottom: 1px solid #eee;
-    }
-
-    tr:nth-child(even) {
-      background-color: #f9fafc;
-    }
-
-    tr:hover {
-      background-color: #f1f5fe;
-    }
-
-    .load-more-container {
-      text-align: center;
-      padding: 20px;
-    }
-
-    .load-more {
-      background: #4a69bd;
-      color: white;
-      border: none;
-      padding: 12px 35px;
-      border-radius: 5px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.3s;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .load-more:hover {
-      background: #3c5aa6;
-    }
-
-    .loading {
-      display: none;
-      text-align: center;
-      padding: 20px;
-      color: #666;
-    }
-
-    .spinner {
-      border: 4px solid rgba(74, 105, 189, 0.2);
-      border-top: 4px solid #4a69bd;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      animation: spin 1s linear infinite;
-      margin: 10px auto;
-    }
-
-    .title-text {
-      text-align: center;
-      font-size: 2rem;
-      font-weight: bold;
-      padding: 20px 0;
-      color: #4a69bd
-    }
-
-    @keyframes spin {
-      0% {
-        transform: rotate(0deg);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Top Scores</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       }
 
-      100% {
-        transform: rotate(360deg);
+      html,
+      body {
+        height: 100%;
+        background-color: #f5f7fa;
+        color: #333;
+        line-height: 1.6;
       }
-    }
 
-    .error {
-      background: #ffebee;
-      color: #c62828;
-      padding: 15px;
-      border-radius: 5px;
-      margin: 20px 0;
-      text-align: center;
-      display: none;
-    }
+      .split-screen {
+        display: flex;
+        height: 100vh;
+        /*overflow: hidden;*/
+      }
 
-    footer {
-      text-align: center;
-      padding: 20px;
-      color: #777;
-      font-size: 0.9rem;
-      border-top: 1px solid #eee;
-    }
+      .half {
+        width: 50%;
+        /*overflow-y: auto;*/
+        padding: 20px;
+      }
 
-    .rank {
-      font-weight: bold;
-      color: #4a69bd;
-    }
-  </style>
-</head>
+      .user-icon {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #ccc;
+        color: white;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+        cursor: pointer;
+      }
 
-<body>
+      .locked-form {
+        opacity: 0.5;
+        pointer-events: none;
+        border: 2px dashed #aaa;
+        padding: 20px;
+      }
 
-  <div class="user-icon" id="user-icon">➜🚪</div>
-  <div class="title-text" id="title-text">Score Manager</div>
+      .popup-modal {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+        background: white;
+        padding: 20px;
+        border: 1px solid #333;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      }
 
-  <div class="split-screen">
-    <!-- ADD SCORE -->
-    <div class="half" id="addUserScoreForm">
-      <h2>Add User Score</h2>
-      <form class="locked-form" id="user-form">
-        <label>Player Name: <input type="text" name="playerName" disabled></label><br><br>
-        <label>Score: <input type="number" name="score" disabled></label><br><br>
-        <button type="submit" disabled>Submit</button>
+      .popup-modal.active {
+        display: block;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin-top: 45px;
+      }
+
+      header {
+        background: linear-gradient(to right, #4a69bd, #6a89cc);
+        color: white;
+        padding: 25px;
+        text-align: center;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 5px;
+      }
+
+      .subtitle {
+        opacity: 0.9;
+        font-size: 1.1rem;
+      }
+
+      .scores-container {
+        padding: 20px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+      }
+
+      th {
+        background-color: #f1f2f6;
+        padding: 15px;
+        text-align: left;
+        font-weight: 600;
+        border-bottom: 2px solid #ddd;
+      }
+
+      td {
+        padding: 14px 15px;
+        border-bottom: 1px solid #eee;
+      }
+
+      tr:nth-child(even) {
+        background-color: #f9fafc;
+      }
+
+      tr:hover {
+        background-color: #f1f5fe;
+      }
+
+      .load-more-container {
+        text-align: center;
+        padding: 20px;
+      }
+
+      .load-more {
+        background: #4a69bd;
+        color: white;
+        border: none;
+        padding: 12px 35px;
+        border-radius: 5px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .load-more:hover {
+        background: #3c5aa6;
+      }
+
+      .loading {
+        display: none;
+        text-align: center;
+        padding: 20px;
+        color: #666;
+      }
+
+      .spinner {
+        border: 4px solid rgba(74, 105, 189, 0.2);
+        border-top: 4px solid #4a69bd;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 10px auto;
+      }
+
+      .title-text {
+        text-align: center;
+        font-size: 2rem;
+        font-weight: bold;
+        padding: 20px 0;
+        color: #4a69bd;
+      }
+
+      #add-score-form label {
+        display: grid;
+        grid-template-columns: 110px 1fr;
+        align-items: center;
+        margin-bottom: 15px;
+        width: 100%;
+      }
+
+      #add-score-form label input {
+        width: 100%;
+        padding: 6px 8px;
+        font-size: 1rem;
+        box-sizing: border-box;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .error {
+        background: #ffebee;
+        color: #c62828;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 20px 0;
+        text-align: center;
+        display: none;
+      }
+
+      footer {
+        text-align: center;
+        padding: 20px;
+        color: #777;
+        font-size: 0.9rem;
+        border-top: 1px solid #eee;
+      }
+
+      .rank {
+        font-weight: bold;
+        color: #4a69bd;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="user-icon" id="user-icon">➜🚪</div>
+    <div class="title-text" id="title-text">Score Manager</div>
+
+    <div class="split-screen">
+      <!-- ADD SCORE -->
+      <div class="half" id="addUserScoreForm">
+        <h2>Add User Score</h2>
+        <form class="locked-form" id="add-score-form">
+          <label>Score: <input type="number" name="score" disabled /></label
+          ><br />
+          <label
+            >Timestamp (optional):
+            <input type="datetime-local" name="timestamp" disabled /></label
+          ><br />
+          <button type="submit" disabled>Submit</button>
+        </form>
+      </div>
+
+      <!-- VIEW SCORE -->
+      <div class="half">
+        <div class="container">
+          <header>
+            <div
+              style="
+                position: relative;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 0.5rem 0;
+              "
+            >
+              <button
+                id="reload-scores"
+                style="
+                  position: absolute;
+                  left: 0;
+                  background: none;
+                  border: none;
+                  cursor: pointer;
+                  font-size: 2rem;
+                "
+              >
+                🔄
+              </button>
+              <h1 style="margin: 0">Global Top Scores</h1>
+              <button
+                id="global-back"
+                style="
+                  position: absolute;
+                  right: 0;
+                  background: none;
+                  border: none;
+                  cursor: pointer;
+                  font-size: 2rem;
+                  display: none;
+                "
+              >
+                🌍
+              </button>
+            </div>
+            <p class="subtitle">See the highest scoring players</p>
+          </header>
+
+          <div class="scores-container">
+            <table id="scores-table">
+              <thead>
+                <tr>
+                  <th width="80">Rank</th>
+                  <th width="60"></th>
+                  <th>Player</th>
+                  <th width="150">Score</th>
+                </tr>
+              </thead>
+              <tbody id="scores-body">
+                <!-- DYNAMIC SCORE LIST -->
+              </tbody>
+            </table>
+
+            <div class="loading" id="loading">
+              <div class="spinner"></div>
+              <p>Loading scores...</p>
+            </div>
+
+            <div class="error" id="error-message">
+              <p>Error loading scores. Please try again.</p>
+            </div>
+
+            <div class="load-more-container">
+              <button class="load-more" id="load-more">
+                <span>Load More</span>
+                <span>▼</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <!--SPACER-->
+        <div style="height: 40px"></div>
+      </div>
+    </div>
+
+    <!-- MOCK LOGIN POPUP -->
+    <div class="popup-modal" id="user-login-popup">
+      <button id="close-login-popup" style="float: right">X</button>
+      <h2>Register User</h2>
+      <form id="create-player-form">
+        <label
+          >Player Name:
+          <input
+            type="text"
+            name="sCreatePlayerName"
+            id="sCreatePlayerName" /></label
+        ><br /><br />
+        <label
+          >Upload Image:
+          <input type="file" name="sContent" id="sContent" /></label
+        ><br /><br />
+        <button type="submit">Create</button>
+      </form>
+      <br /><br />
+      <h2>Login User</h2>
+      <form id="load-player-form">
+        <label
+          >Player XID:
+          <input
+            type="text"
+            name="sLoadPlayerName"
+            id="sLoadPlayerName" /></label
+        ><br /><br />
+        <button type="submit">Load</button>
       </form>
     </div>
 
-    <!-- VIEW SCORE -->
-    <div class="half">
-      <div class="container">
-        <header>
-          <h1>Top Scores</h1>
-          <p class="subtitle">See the highest scoring players</p>
-        </header>
-
-        <div class="scores-container">
-          <table id="scores-table">
-            <thead>
-              <tr>
-                <th width="80">Rank</th>
-                <th>Player</th>
-                <th width="150">Score</th>
-              </tr>
-            </thead>
-            <tbody id="scores-body">
-              <!-- DYNAMIC SCORE LIST -->
-            </tbody>
-          </table>
-
-          <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>Loading scores...</p>
-          </div>
-
-          <div class="error" id="error-message">
-            <p>Error loading scores. Please try again.</p>
-          </div>
-
-          <div class="load-more-container">
-            <button class="load-more" id="load-more">
-              <span>Load More</span>
-              <span>▼</span>
-            </button>
-          </div>
-        </div>
-
-        <footer>
-          <p>Data provided by Game Scores API</p>
-        </footer>
-      </div>
+    <!-- USER INFO/LOGOUT POPUP -->
+    <div class="popup-modal" id="user-info-popup">
+      <button id="close-info-popup" style="float: right">X</button>
+      <h2>Welcome Back</h2>
+      <p><strong>Name:</strong> <span id="user-name-display"></span></p>
+      <p><strong>XID:</strong> <span id="user-xid-display"></span></p>
+      <br />
+      <button id="logout-button">Logout</button>
     </div>
-  </div>
 
-  <!-- MOCK LOGIN POPUP -->
-  <div class="popup-modal" id="user-login-popup">
-    <button id="close-login-popup" style="float:right;">X</button>
-    <h2>Register User</h2>
-    <form id="create-player-form">
-      <label>Player Name: <input type="text" name="sCreatePlayerName" id="sCreatePlayerName"></label><br><br>
-      <label>Upload Image: <input type="file" name="sContent" id="sContent"></label><br><br>
-      <button type="submit">Create</button>
-    </form>
-    <br><br>
-    <h2>Login User</h2>
-    <form id="load-player-form">
-      <label>Player XID: <input type="text" name="sLoadPlayerName" id="sLoadPlayerName"></label><br><br>
-      <button type="submit">Load</button>
-    </form>
-  </div>
+    <script>
+      const API_BASE = "http://217.154.206.223/api";
 
-  <!-- USER INFO/LOGOUT POPUP -->
-  <div class="popup-modal" id="user-info-popup">
-    <button id="close-info-popup" style="float:right;">X</button>
-    <h2>Welcome Back</h2>
-    <p><strong>Name:</strong> <span id="user-name-display"></span></p>
-    <p><strong>XID:</strong> <span id="user-xid-display"></span></p>
-    <br>
-    <button id="logout-button">Logout</button>
-  </div>
-
-
-  <script>
-    //Fetch cross-origin
-    const API_BASE = 'http://217.154.206.223/api';
-    const PROXY_URL = '';
-
-    const proxiedUrl = (url) => `${url}`;
-
-    async function fetchJson(path, { method = 'GET', body = null, useProxy = true } = {}) {
-      const fullUrl = `${API_BASE}${path}`;
-      const url = useProxy ? proxiedUrl(fullUrl) : fullUrl;
-
-      const options = {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        ...(body && { body: JSON.stringify(body) }),
-      };
-
-      const response = await fetch(url, options);
-      if (!response.ok)
-        throw new Error(`Fetch failed: ${response.status}`);
-      return response.json();
-    }
-
-    function updateUserIcon() {
-      const userData = localStorage.getItem('loggedInUser');
-      const icon = document.getElementById('user-icon');
-      if (userData) {
-        const user = JSON.parse(userData);
-        const initials = user.sPlayerName
-          .split('_')
-          .map(word => word[0].toUpperCase())
-          .join('');
-        icon.textContent = initials;
-      } else {
-        icon.textContent = '➜🚪';
-      }
-    }
-    function setFormLockState(isLocked) {
-      const form = document.getElementById('user-form');
-      if (isLocked)
-        form.classList.add('locked-form');
-      else
-        form.classList.remove('locked-form');
-      form.querySelectorAll('input, button').forEach(el => el.disabled = isLocked);
-    }
-    document.getElementById('user-icon').addEventListener('click', () => {
-      console.debug("User icon clicked — showing popup");
-      const userData = localStorage.getItem('loggedInUser');
-      if (userData) { // populate user info popup and show
-        const user = JSON.parse(userData);
-        document.getElementById('user-name-display').textContent = user.sPlayerName || 'N/A';
-        document.getElementById('user-xid-display').textContent = user.xidPlayer || 'N/A';
-        document.getElementById('user-info-popup').classList.add('active');
-      } else {
-        document.getElementById('user-login-popup').classList.add('active');
-      }
-    });
-
-    document.addEventListener('DOMContentLoaded', function () {
-      const tableBody = document.getElementById('scores-body');
-      const loadMoreBtn = document.getElementById('load-more');
-      const loadingIndicator = document.getElementById('loading');
-      const errorMessage = document.getElementById('error-message');
+      const tableBody = document.getElementById("scores-body");
+      const loadMoreBtn = document.getElementById("load-more");
+      const loadingIndicator = document.getElementById("loading");
+      const errorMessage = document.getElementById("error-message");
 
       let currentOffset = 0;
       const limit = 10;
 
+      const imageCache = new Map();
+      let inDetailView = false;
+      let currentPlayerId = null;
+
+      async function fetchJson(path, { method = "GET", body = null } = {}) {
+        const fullUrl = `${API_BASE}${path}`;
+        const url = fullUrl;
+
+        const options = {
+          method,
+          headers: { "Content-Type": "application/json" },
+          ...(body && { body: JSON.stringify(body) }),
+          credentials: "include",
+        };
+
+        const response = await fetch(url, options);
+        if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
+        return response.json();
+      }
+
+      function updateUserIcon() {
+        const userData = localStorage.getItem("loggedInUser");
+        const icon = document.getElementById("user-icon");
+        if (userData) {
+          const user = JSON.parse(userData);
+          const initials = user.sPlayerName
+            .split("_")
+            .map((word) => word[0].toUpperCase())
+            .join("");
+          icon.textContent = initials;
+        } else {
+          icon.textContent = "➜🚪";
+        }
+      }
 
       function showLoading() {
-        loadingIndicator.style.display = 'block';
-        errorMessage.style.display = 'none';
+        loadingIndicator.style.display = "block";
+        errorMessage.style.display = "none";
       }
       function hideLoading() {
-        loadingIndicator.style.display = 'none';
+        loadingIndicator.style.display = "none";
       }
       function showError() {
-        errorMessage.style.display = 'block';
+        errorMessage.style.display = "block";
         hideLoading();
       }
 
       async function fetchScores(offset = 0) {
         showLoading();
         try {
-          const sorters = JSON.stringify({ nScore: { direction: 'DESC' } });
-          const path = `/detail/score?sorters=${encodeURIComponent(sorters)}&limit=${limit}&offset=${offset}`;
-          const data = await fetchJson(path, { useProxy: true });
+          const sorters = JSON.stringify({ nScore: { direction: "DESC" } });
+          const path = `/detail/score?sorters=${encodeURIComponent(
+            sorters
+          )}&limit=${limit}&offset=${offset}`;
+          const data = await fetchJson(path);
           hideLoading();
           return data;
         } catch (error) {
-          console.error('Error fetching scores:', error);
+          console.error("Error fetching scores:", error);
           showError();
           return null;
         }
       }
-
       function renderScores(scores, offset) {
         if (!scores || scores.length === 0) {
-          loadMoreBtn.style.display = 'none';
+          loadMoreBtn.style.display = "none";
           return;
         }
+
         scores.forEach((item, index) => {
-          const rank = offset + index + 1;
-          const playerName = item.player?.sPlayerName || 'Anonymous Player';
+          const rank = item.score?.nPlacement ?? offset + index + 1;
+          const playerName = item.player?.sPlayerName || "Anonymous Player";
           const scoreValue = item.score?.nScore ?? 0;
-          const row = document.createElement('tr');
-          row.innerHTML = `
-          <td class="rank">${rank}</td>
-          <td>${playerName}</td>
-          <td>${scoreValue.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</td>
-        `;
+          const xid = item.player?.xidPlayer;
+
+          const row = document.createElement("tr");
+
+          const rankCell = document.createElement("td");
+          rankCell.textContent = rank;
+          row.appendChild(rankCell);
+
+          const imageCell = document.createElement("td");
+          const img = document.createElement("img");
+          img.style.width = "40px";
+          img.style.height = "40px";
+          img.style.borderRadius = "50%";
+          img.style.objectFit = "cover";
+
+          if (imageCache.has(xid)) {
+            img.src = imageCache.get(xid);
+            imageCell.appendChild(img);
+          } else {
+            fetch(`${API_BASE}/detail/image/${xid}`, { credentials: "include" })
+              .then((res) => {
+                if (!res.ok) throw new Error("Image JSON not found");
+                return res.json();
+              })
+              .then((json) => {
+                const base64Image = json.data?.image?.[0]?.sContent;
+                if (!base64Image) throw new Error("Image data missing");
+                imageCache.set(xid, base64Image);
+                img.src = base64Image;
+                imageCell.appendChild(img);
+              })
+              .catch((err) => {
+                console.error(`Image fetch error for xid=${xid}:`, err);
+                imageCell.textContent = "—";
+              });
+          }
+
+          row.appendChild(imageCell);
+
+          const nameCell = document.createElement("td");
+          const nameLink = document.createElement("span");
+          nameLink.textContent = playerName;
+          nameLink.style.cursor = "pointer";
+          nameLink.style.color = "#4a69bd";
+          nameLink.style.textDecoration = "underline";
+          nameLink.addEventListener("click", () => {
+            clearScores();
+            currentOffset = 0;
+            loadPlayerDetail(xid);
+          });
+          nameCell.appendChild(nameLink);
+          row.appendChild(nameCell);
+
+          const scoreCell = document.createElement("td");
+          scoreCell.textContent = scoreValue.toLocaleString();
+          row.appendChild(scoreCell);
+
           tableBody.appendChild(row);
         });
       }
 
       async function loadScores(offset) {
         const scores = await fetchScores(offset);
-        console.log('scores received:', scores);
-        if (scores) renderScores(scores.data, offset);
+        console.log("scores received:", scores);
+        if (scores) {
+          renderScores(scores.data, offset);
+          currentOffset += limit;
+        }
+      }
+      function updateLeaderboardTitle(text) {
+        document.getElementById("leaderboard-title").textContent = text;
       }
 
-      loadMoreBtn.addEventListener('click', () => {
-        currentOffset += limit;
+      function loadPlayerDetail(xidPlayer) {
+        fetch(`${API_BASE}/detail/player/${xidPlayer}`, {
+          credentials: "include",
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            const player = data.data.player?.[0];
+            const scores = data.data.scores;
+
+            if (!player || !scores?.length) {
+              alert("No data found for this player");
+              return;
+            }
+
+            const title = document.querySelector("h1");
+            title.textContent = `${player.sPlayerName}'s Scores`;
+
+            document.getElementById("global-back").style.display =
+              "inline-block";
+
+            const formatted = scores
+              .filter(({ nPlacement }) => typeof nPlacement === "number")
+              .sort((a, b) => a.nPlacement - b.nPlacement)
+              .map(({ nPlacement, score }) => ({
+                player,
+                score: {
+                  ...score,
+                  nPlacement,
+                },
+              }));
+
+            inDetailView = true;
+            currentPlayerId = player.xidPlayer;
+            loadMoreBtn.style.display = "none";
+            renderScores(formatted, 0);
+          })
+          .catch((err) => {
+            console.error("Failed to load player detail:", err);
+            alert("Could not load player scores");
+          });
+      }
+
+      function clearScores() {
+        tableBody.innerHTML = "";
+        loadMoreBtn.style.display = "none";
+      }
+      function setFormLockState(isLocked) {
+        const form = document.getElementById("add-score-form");
+        if (isLocked) form.classList.add("locked-form");
+        else form.classList.remove("locked-form");
+        form
+          .querySelectorAll("input, button")
+          .forEach((el) => (el.disabled = isLocked));
+      }
+
+      function resizeImage(file, maxWidth = 256, maxHeight = 256) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              let { width, height } = img;
+
+              // scale down while preserving aspect ratio
+              const scale = Math.min(maxWidth / width, maxHeight / height);
+              width *= scale;
+              height *= scale;
+              canvas.width = width;
+              canvas.height = height;
+
+              canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL("image/jpeg", 0.8)); // compress slightly
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      loadMoreBtn.addEventListener("click", () => {
         loadScores(currentOffset);
       });
 
-      updateUserIcon();
-      //Unlock form if user logged in
-      setFormLockState(!localStorage.getItem('loggedInUser'));
+      document.getElementById("user-icon").addEventListener("click", () => {
+        console.debug("User icon clicked — showing popup");
+        const userData = localStorage.getItem("loggedInUser");
+        if (userData) {
+          // populate user info popup and show
+          const user = JSON.parse(userData);
+          document.getElementById("user-name-display").textContent =
+            user.sPlayerName || "N/A";
+          document.getElementById("user-xid-display").textContent =
+            user.xidPlayer || "N/A";
+          document.getElementById("user-info-popup").classList.add("active");
+        } else {
+          document.getElementById("user-login-popup").classList.add("active");
+        }
+      });
 
-      loadScores(currentOffset);
-    });
+      document.addEventListener("DOMContentLoaded", function () {
+        updateUserIcon();
+        //Unlock form if user logged in
+        setFormLockState(!localStorage.getItem("loggedInUser"));
 
-    document.getElementById('close-login-popup').addEventListener('click', function () {
-      document.getElementById('user-login-popup').classList.remove('active');
-    });
-    document.getElementById('close-info-popup').addEventListener('click', function () {
-      document.getElementById('user-info-popup').classList.remove('active');
-    });
-    document.getElementById('logout-button').addEventListener('click', () => {
-      localStorage.removeItem('loggedInUser');
-      updateUserIcon();
-      //lock user form
-      setFormLockState(true);
-      document.getElementById('user-info-popup').classList.remove('active');
-    });
-    const toBase64 = file => new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+        loadScores(currentOffset);
+      });
+      document
+        .getElementById("reload-scores")
+        .addEventListener("click", async () => {
+          const tableBody = document.getElementById("scores-body");
+          tableBody.innerHTML = "";
+          currentOffset = 0;
+          if (inDetailView && currentPlayerId)
+            loadPlayerDetail(currentPlayerId);
+          else await loadScores(currentOffset);
+        });
+      document.getElementById("global-back").addEventListener("click", () => {
+        const title = document.querySelector("h1");
+        title.textContent = "Global Top Scores";
 
-    document.getElementById('create-player-form').addEventListener('submit', async function (e) {
-      e.preventDefault();
+        const iconEl = document.getElementById("player-icon");
+        if (iconEl) iconEl.remove();
 
-      const nameInput = document.getElementById('sCreatePlayerName');
-      const fileInput = document.getElementById('sContent');
+        document.getElementById("global-back").style.display = "none";
 
-      const name = nameInput.value;
-      const file = fileInput.files[0];
+        inDetailView = false;
+        currentPlayerId = null;
+        clearScores();
+        currentOffset = 0;
 
-      if (!name || !file) {
-        alert("Please enter a name and select an image.");
-        return;
-      }
+        loadMoreBtn.style.display = "inline-flex";
+        loadScores(currentOffset);
+      });
+      document
+        .getElementById("add-score-form")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const scoreInput = this.querySelector('input[name="score"]');
+          const timestampInput = this.querySelector('input[name="timestamp"]');
 
-      try {
-        const base64 = await toBase64(file);
+          const score = parseInt(scoreInput.value, 10);
+          let timestamp = null;
 
-        const body = {
-          player: {
-            sPlayerName: name,
-          },
-          image: {
-            sContent: base64
+          if (!score || isNaN(score)) {
+            alert("Please enter a valid score.");
+            return;
           }
-        };
 
-        const result = await fetchJson('/create/player', {
-          method: 'POST',
-          body,
-          useProxy: true
+          if (timestampInput.value) {
+            timestamp = Math.floor(new Date(timestampInput.value).getTime());
+          } else {
+            timestamp = Math.floor(new Date().getTime());
+          }
+
+          const userData = localStorage.getItem("loggedInUser");
+          if (!userData) {
+            alert("User not logged in.");
+            return;
+          }
+
+          const user = JSON.parse(userData);
+          const xidPlayer = user.xidPlayer;
+
+          try {
+            const url = `/create/score/${xidPlayer}`;
+
+            const body = {
+              nScore: score,
+              nTimestamp: timestamp,
+            };
+
+            const response = await fetchJson(url, {
+              method: "POST",
+              body,
+            });
+
+            console.log("Score submitted:", response);
+            alert("Score submitted successfully.");
+
+            scoreInput.value = "";
+            timestampInput.value = "";
+
+            document.getElementById("reload-scores")?.click();
+          } catch (err) {
+            console.error("Error submitting score:", err);
+            alert("Failed to submit score.");
+          }
         });
 
-        alert("User created successfully.");
-        console.log("Server response:", result);
-      } catch (err) {
-        console.error("Failed to create user:", err);
-        alert("Failed to create user.");
-      }
-    });
-
-    document.getElementById('load-player-form').addEventListener('submit', async function (e) {
-      e.preventDefault();
-
-      const xidInput = document.getElementById('sLoadPlayerName');
-      const xidPlayer = xidInput.value.trim();
-
-      if (!xidPlayer) {
-        alert("Please enter a player XID.");
-        return;
-      }
-
-      try {
-        const path = `/model/player/${encodeURIComponent(xidPlayer)}`;
-        const result = await fetchJson(path, { useProxy: true });
-
-        if (result?.data?.length === 0) {
-          alert("No user found with that XID.");
-          return;
-        }
-
-        const user = result.data[0];
-        localStorage.setItem('loggedInUser', JSON.stringify(user));
+      document
+        .getElementById("close-login-popup")
+        .addEventListener("click", function () {
+          document
+            .getElementById("user-login-popup")
+            .classList.remove("active");
+        });
+      document
+        .getElementById("close-info-popup")
+        .addEventListener("click", function () {
+          document.getElementById("user-info-popup").classList.remove("active");
+        });
+      document.getElementById("logout-button").addEventListener("click", () => {
+        localStorage.removeItem("loggedInUser");
         updateUserIcon();
-        document.getElementById('user-login-popup').classList.remove('active');
-        setFormLockState(false);
+        //lock user form
+        setFormLockState(true);
+        document.getElementById("user-info-popup").classList.remove("active");
+      });
 
-        alert(`User loaded: ${user.sPlayerName}`);
-        console.log("User data stored in localStorage:", user);
-      } catch (err) {
-        console.error("Login failed:", err);
-        alert("Failed to load user.");
-      }
-    });
-  </script>
+      document
+        .getElementById("create-player-form")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
 
-</body>
+          const nameInput = document.getElementById("sCreatePlayerName");
+          const fileInput = document.getElementById("sContent");
 
+          const name = nameInput.value;
+          const file = fileInput.files[0];
+
+          if (!name || !file) {
+            alert("Please enter a name and select an image.");
+            return;
+          }
+
+          try {
+            const base64 = await resizeImage(file);
+            const body = {
+              player: { sPlayerName: name },
+              image: { sContent: base64 },
+            };
+
+            const result = await fetchJson("/create/player", {
+              method: "POST",
+              body,
+              credentials: "include",
+            });
+
+            alert("User created successfully.");
+            console.log("Server response:", result);
+            if (result && result.data && result.data.player) {
+              localStorage.setItem(
+                "loggedInUser",
+                JSON.stringify(result.data.player)
+              );
+              updateUserIcon();
+              setFormLockState(false);
+
+              nameInput.value = "";
+              fileInput.value = "";
+
+              //close  popup
+              document
+                .getElementById("user-login-popup")
+                .classList.remove("active");
+
+              alert("User created successfully and logged in.");
+            } else {
+              throw new Error("Unexpected server response");
+            }
+          } catch (err) {
+            console.error("Failed to create user:", err);
+            alert("Failed to create user.");
+          }
+        });
+      document
+        .getElementById("load-player-form")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const xidInput = document.getElementById("sLoadPlayerName");
+          const xidPlayer = xidInput.value.trim();
+
+          if (!xidPlayer) {
+            alert("Please enter a player XID.");
+            return;
+          }
+
+          try {
+            const path = `/model/player/${encodeURIComponent(xidPlayer)}`;
+            const result = await fetchJson(path);
+
+            if (result?.data?.length === 0) {
+              alert("No user found with that XID.");
+              return;
+            }
+
+            const user = result.data[0];
+            localStorage.setItem("loggedInUser", JSON.stringify(user));
+            updateUserIcon();
+            document
+              .getElementById("user-login-popup")
+              .classList.remove("active");
+            setFormLockState(false);
+
+            alert(`User loaded: ${user.sPlayerName}`);
+            console.log("User data stored in localStorage:", user);
+          } catch (err) {
+            console.error("Login failed:", err);
+            alert("Failed to load user.");
+          }
+        });
+    </script>
+  </body>
 </html>

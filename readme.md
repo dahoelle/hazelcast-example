@@ -18,15 +18,15 @@ Hier wird eine grobe Übersicht über die selbst programmierten Komponenten der 
 
 ## 1.1 Webfrontend
 
-TODO
+Der Code für das Webfrontend umfasst eine Webseite mit HTML, CSS und JavaScript. Alle Bestandteile sind in der Datei [./volumes/data/web/index.html](./volumes/data/web/index.html).
 
 ## 1.2 Processing-Unit
 
-Der Code befindet sich im Ordner `processing-unit`. Das Fastify-Backend ist in zwei Hauptbereiche `routes` und `plugins` aufgeteilt
+Der Code befindet sich im Ordner [processing-unit](./processing-unit/). Das Fastify-Backend ist in zwei Hauptbereiche [routes](./processing-unit/routes) und [plugins](./processing-unit/plugins) aufgeteilt
 
 ### Routes
 
-Im Unterordner `routes` werden die verschiedenen Endpunkte implementiert.
+Im Unterordner [routes](./processing-unit/routes) werden die verschiedenen Endpunkte implementiert.
 
 | Unterordner | Beinhaltet                                                                                                                                                                               |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -37,7 +37,7 @@ Im Unterordner `routes` werden die verschiedenen Endpunkte implementiert.
 
 ### Plugins
 
-In dem Unterordner `plugins` befinden sich die verschiedenen NodeJs Logik Implementierungen
+In dem Unterordner [plugins](./processing-unit/plugins) befinden sich die verschiedenen NodeJs Logik Implementierungen
 
 | Unterordner   | Beinhaltet                                                                                                              |
 | ------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -48,11 +48,11 @@ In dem Unterordner `plugins` befinden sich die verschiedenen NodeJs Logik Implem
 
 ## 1.3 Middleware
 
-Der Code befindet sich im Ordner `middleware`. Das Fastify-Backend ist in zwei Hauptbereiche `routes` und `plugins` aufgeteilt
+Der Code befindet sich im Ordner [middleware](./middleware/). Das Fastify-Backend ist in zwei Hauptbereiche [routes](./middleware/routes/) und [plugins](./middleware/plugins/) aufgeteilt
 
 ### Routes
 
-Im Unterordner `routes` werden die verschiedenen Endpunkte implementiert.
+Im Unterordner [routes](./middleware/routes/) werden die verschiedenen Endpunkte implementiert.
 
 | Unterordner | Beinhaltet                                                                                                                                                                                                                                  |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -63,7 +63,7 @@ Im Unterordner `routes` werden die verschiedenen Endpunkte implementiert.
 
 ### Plugins
 
-In dem Unterordner `plugins` befinden sich die verschiedenen NodeJs Logik Implementierungen
+In dem Unterordner [plugins](./middleware/plugins/) befinden sich die verschiedenen NodeJs Logik Implementierungen
 
 | Unterordner   | Beinhaltet                                                                                                             |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------- |
@@ -76,15 +76,15 @@ In dem Unterordner `plugins` befinden sich die verschiedenen NodeJs Logik Implem
 
 ### Volumes
 
-Über die Datei `./volumes/config/middleware/deployment.jsonc` kann die verwendete Deployment-Metrik und deren Grenzen festgelegt werden
+Über die Datei[./volumes/config/middleware/deployment.jsonc](./volumes/config/middleware/deployment.jsonc) kann die verwendete Deployment-Metrik und deren Grenzen festgelegt werden
 
 ## 1.4 Data-Reader/Writer
 
-Dieses Fastify-Backend beinhaltet lediglich den Bereich `plugins` da die Kommunikation über MQTT geregelt wird.
+Das Fastify-Backend [data-rw](./data-rw/) beinhaltet lediglich den Bereich [plugins](./data-rw/plugins/) da die Kommunikation über MQTT geregelt wird.
 
 ### Plugins
 
-In dem Unterordner `plugins` befinden sich die verschiedenen NodeJs Logik Implementierungen
+In dem Unterordner [plugins](./data-rw/plugins/) befinden sich die verschiedenen NodeJs Logik Implementierungen
 
 | Unterordner | Beinhaltet                                                                                                            |
 | ----------- | --------------------------------------------------------------------------------------------------------------------- |
@@ -143,14 +143,16 @@ Um das System auf einem lokalen Rechner zu starten werden folgende Schritte durc
 4. Die Einstellungen der `.env` Datei anpassen
    - Die `NETWORK_IP` auf die eigene IP abändern
    - Den Pfad `PROCESSING_UNIT_VOLUME` anpassen, sodass der `processing-unit` Ordner referenziert wird. Dabei den absoluten Pfad angeben
-5. Die Docker Container über `docker compose up -d` starten
+5. Die Server URL im Webfrontend anpassen
+   - Das Webfrontend unter `./volumes/data/web/index.html` öffnen
+   - Die URL der Zeile `const API_BASE = "http://217.154.206.223/api";` anpassen
+     - `217.154.206.223` mit der `NETWORK_IP` von Schritt 4 ersetzen
+6. Die Docker Container über `docker compose up -d` starten
    - Sicherstellen, dass dieser Befehl in dem Ordner mit der `docker-compose.yml` ausgeführt wird
    - Dieser Befehl könnte einige Minuten dauern
    - Die Container `middleware` und `data-rw` warten bis `rabbitmq` erreichbar ist
-6. Unter folgenden Ports sind die Anwendungen bereitgestellt
+7. Unter folgenden Ports sind die Anwendungen bereitgestellt
    - `80`: Webfrontend
    - `3000`: Middleware
      - Über `:3000/simulate?duration=60000&interval=500&minScore=1` wird eine 1 minütige Simulation gestartet
    - `8080`: Hazelcast-Management-Center
-
-# TODO: Webfrontend URL muss angepasst werden
